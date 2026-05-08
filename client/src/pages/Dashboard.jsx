@@ -4,8 +4,7 @@ import {
   LayoutDashboard, BookOpen, User, Gem, LogOut,
   BookCheck, Award, TrendingUp, Lock, ChevronRight,
   ArrowUpRight, Clock, CheckCircle, FileQuestion
-} from 'lucide-react'
-import api from '../api/axios'
+} from 'lucide-react'import api from '../api/axios'
 import useAuthStore from '../store/authStore'
 import Loader from '../components/Loader'
 import { getCourseLogo } from '../components/CourseLogos'
@@ -80,8 +79,7 @@ export default function Dashboard() {
               Xush kelibsiz, <span className="gradient-text">{user?.first_name}</span>!
             </h1>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>O'qishni davom ettiring va maqsadlaringizga erishing.</p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
+          </div>          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
             <span className={`badge-${user?.plan}`}>{user?.plan?.toUpperCase()}</span>
             {user?.plan === 'free' && data?.daysRemaining != null && (
               <span className="days-badge">

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { CheckCircle, Clock, FileQuestion, ChevronRight, Play, Lock } from 'lucide-react'
+import { CheckCircle, Clock, FileQuestion, ChevronRight, Play } from 'lucide-react'
 import api from '../api/axios'
 import Loader from '../components/Loader'
 import BackButton from '../components/BackButton'
@@ -63,41 +63,26 @@ export default function CourseDetail() {
             {lessons.length === 0
               ? <div className="empty-state"><p>Hali darslar qo'shilmagan</p></div>
               : lessons.map((l, i) => (
-                l.locked
-                  ? <div key={l.id} className="lesson-row locked-row">
-                      <div className="lesson-num-circle" style={{ background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.2)' }}>
-                        <Lock size={14} color="#ef4444" />
-                      </div>
-                      <div className="lesson-row-info">
-                        <div className="lesson-row-title" style={{ opacity: 0.5 }}>{l.title}</div>
-                        <div className="lesson-row-meta">
-                          <span style={{ color: '#ef4444', fontSize: '0.75rem' }}>Pro rejada mavjud</span>
-                        </div>
-                      </div>
-                      <Link to="/pricing" className="btn btn-outline btn-sm" style={{ fontSize: '0.75rem', padding: '0.3rem 0.7rem' }}>
-                        Ochish
-                      </Link>
+                <Link key={l.id} to={`/lessons/${l.id}`} className={`lesson-row ${l.watched ? 'done' : ''}`}>
+                  <div className="lesson-num-circle">
+                    {l.watched ? <CheckCircle size={16} color="#22c55e" /> : <span>{i + 1}</span>}
+                  </div>
+                  <div className="lesson-row-info">
+                    <div className="lesson-row-title">{l.title}</div>
+                    <div className="lesson-row-meta">
+                      {l.duration_minutes > 0 && (
+                        <span><Clock size={12} /> {l.duration_minutes} daqiqa</span>
+                      )}
+                      {l.quiz_id && (
+                        <span className={`quiz-tag ${l.quiz_passed ? 'passed' : ''}`}>
+                          <FileQuestion size={12} />
+                          {l.quiz_passed ? "Quiz o'tildi" : 'Quiz bor'}
+                        </span>
+                      )}
                     </div>
-                  : <Link key={l.id} to={`/lessons/${l.id}`} className={`lesson-row ${l.watched ? 'done' : ''}`}>
-                      <div className="lesson-num-circle">
-                        {l.watched ? <CheckCircle size={16} color="#22c55e" /> : <span>{i + 1}</span>}
-                      </div>
-                      <div className="lesson-row-info">
-                        <div className="lesson-row-title">{l.title}</div>
-                        <div className="lesson-row-meta">
-                          {l.duration_minutes > 0 && (
-                            <span><Clock size={12} /> {l.duration_minutes} daqiqa</span>
-                          )}
-                          {l.quiz_id && (
-                            <span className={`quiz-tag ${l.quiz_passed ? 'passed' : ''}`}>
-                              <FileQuestion size={12} />
-                              {l.quiz_passed ? "Quiz o'tildi" : 'Quiz bor'}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <ChevronRight size={16} color="var(--text-muted)" />
-                    </Link>
+                  </div>
+                  <ChevronRight size={16} color="var(--text-muted)" />
+                </Link>
               ))
             }
           </div>
