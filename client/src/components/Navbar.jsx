@@ -48,42 +48,60 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }} className="nav-desktop">
-            {!user?.role || user.role !== 'admin' ? navLinks.map(({ to, icon, label }) => (
-              <Link key={to} to={to} style={{
-                display: 'flex', alignItems: 'center', gap: '0.4rem',
-                padding: '0.5rem 0.9rem', borderRadius: 8,
-                color: isActive(to) ? 'var(--text)' : 'var(--text-muted)',
-                fontWeight: 500, fontSize: '0.88rem',
-                background: isActive(to) ? 'rgba(99,102,241,0.12)' : 'transparent',
-                transition: 'all 0.2s', textDecoration: 'none',
-              }}>
-                {icon} {label}
-              </Link>
-            )) : null}
-
-            {user && user.role !== 'admin' && (
-              <Link to="/dashboard" style={{
-                display: 'flex', alignItems: 'center', gap: '0.4rem',
-                padding: '0.5rem 0.9rem', borderRadius: 8,
-                color: isActive('/dashboard') ? 'var(--text)' : 'var(--text-muted)',
-                fontWeight: 500, fontSize: '0.88rem',
-                background: isActive('/dashboard') ? 'rgba(99,102,241,0.12)' : 'transparent',
-                transition: 'all 0.2s', textDecoration: 'none',
-              }}>
-                <LayoutDashboard size={16} /> Dashboard
-              </Link>
-            )}
-
-            {user?.role === 'admin' && (
-              <Link to="/admin" style={{
-                display: 'flex', alignItems: 'center', gap: '0.4rem',
-                padding: '0.5rem 0.9rem', borderRadius: 8,
-                color: '#f59e0b', fontWeight: 600, fontSize: '0.88rem',
-                background: isActive('/admin') ? 'rgba(245,158,11,0.1)' : 'transparent',
-                transition: 'all 0.2s', textDecoration: 'none',
-              }}>
-                <ShieldCheck size={16} /> Admin Panel
-              </Link>
+            {/* Admin uchun faqat 2 ta link */}
+            {user?.role === 'admin' ? (
+              <>
+                <Link to="/admin" style={{
+                  display: 'flex', alignItems: 'center', gap: '0.4rem',
+                  padding: '0.5rem 0.9rem', borderRadius: 8,
+                  color: '#f59e0b', fontWeight: 600, fontSize: '0.88rem',
+                  background: isActive('/admin') ? 'rgba(245,158,11,0.12)' : 'transparent',
+                  transition: 'all 0.2s', textDecoration: 'none',
+                }}>
+                  <ShieldCheck size={16} /> Admin Panel
+                </Link>
+                {/* Saytga o'tish — oddiy user ko'radigan sahifalar */}
+                {navLinks.map(({ to, icon, label }) => (
+                  <Link key={to} to={to} style={{
+                    display: 'flex', alignItems: 'center', gap: '0.4rem',
+                    padding: '0.5rem 0.9rem', borderRadius: 8,
+                    color: isActive(to) ? 'var(--text)' : 'var(--text-muted)',
+                    fontWeight: 500, fontSize: '0.88rem',
+                    background: isActive(to) ? 'rgba(99,102,241,0.12)' : 'transparent',
+                    transition: 'all 0.2s', textDecoration: 'none',
+                  }}>
+                    {icon} {label}
+                  </Link>
+                ))}
+              </>
+            ) : (
+              /* Oddiy foydalanuvchi uchun */
+              <>
+                {navLinks.map(({ to, icon, label }) => (
+                  <Link key={to} to={to} style={{
+                    display: 'flex', alignItems: 'center', gap: '0.4rem',
+                    padding: '0.5rem 0.9rem', borderRadius: 8,
+                    color: isActive(to) ? 'var(--text)' : 'var(--text-muted)',
+                    fontWeight: 500, fontSize: '0.88rem',
+                    background: isActive(to) ? 'rgba(99,102,241,0.12)' : 'transparent',
+                    transition: 'all 0.2s', textDecoration: 'none',
+                  }}>
+                    {icon} {label}
+                  </Link>
+                ))}
+                {user && (
+                  <Link to="/dashboard" style={{
+                    display: 'flex', alignItems: 'center', gap: '0.4rem',
+                    padding: '0.5rem 0.9rem', borderRadius: 8,
+                    color: isActive('/dashboard') ? 'var(--text)' : 'var(--text-muted)',
+                    fontWeight: 500, fontSize: '0.88rem',
+                    background: isActive('/dashboard') ? 'rgba(99,102,241,0.12)' : 'transparent',
+                    transition: 'all 0.2s', textDecoration: 'none',
+                  }}>
+                    <LayoutDashboard size={16} /> Dashboard
+                  </Link>
+                )}
+              </>
             )}
           </div>
 
@@ -130,7 +148,6 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile menu */}
       {mobileOpen && (
         <div style={{
           position: 'fixed', top: 64, left: 0, right: 0, zIndex: 999,
@@ -138,16 +155,33 @@ export default function Navbar() {
           borderBottom: '1px solid var(--border)', padding: '1rem',
           display: 'flex', flexDirection: 'column', gap: '0.4rem',
         }}>
-          {navLinks.map(({ to, icon, label }) => (
-            <Link key={to} to={to} onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: isActive(to) ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 500, background: isActive(to) ? 'rgba(99,102,241,0.1)' : 'transparent' }}>
-              {icon} {label}
-            </Link>
-          ))}
+          {user?.role === 'admin' ? (
+            <>
+              <Link to="/admin" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: '#f59e0b', fontWeight: 600 }}>
+                <ShieldCheck size={16} /> Admin Panel
+              </Link>
+              {navLinks.map(({ to, icon, label }) => (
+                <Link key={to} to={to} onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: isActive(to) ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 500, background: isActive(to) ? 'rgba(99,102,241,0.1)' : 'transparent' }}>
+                  {icon} {label}
+                </Link>
+              ))}
+            </>
+          ) : (
+            <>
+              {navLinks.map(({ to, icon, label }) => (
+                <Link key={to} to={to} onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: isActive(to) ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 500, background: isActive(to) ? 'rgba(99,102,241,0.1)' : 'transparent' }}>
+                  {icon} {label}
+                </Link>
+              ))}
+              {user && (
+                <Link to="/dashboard" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: 'var(--text-muted)', fontWeight: 500 }}>
+                  <LayoutDashboard size={16} /> Dashboard
+                </Link>
+              )}
+            </>
+          )}
           {user ? (
             <>
-              <Link to="/dashboard" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: 'var(--text-muted)', fontWeight: 500 }}>
-                <LayoutDashboard size={16} /> Dashboard
-              </Link>
               <Link to="/profile" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: 'var(--text-muted)', fontWeight: 500 }}>
                 <User size={16} /> Profil
               </Link>
