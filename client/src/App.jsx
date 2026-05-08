@@ -47,7 +47,8 @@ function AdminRoute({ children }) {
 function GuestRoute({ children }) {
   const { user, loading } = useAuthStore()
   if (loading) return <Loader />
-  if (user) return <Navigate to="/dashboard" replace />
+  // Admin kirsa → admin panelga, oddiy user → dashboardga
+  if (user) return <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace />
   return children
 }
 

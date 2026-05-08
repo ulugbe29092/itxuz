@@ -36,7 +36,8 @@ export default function LessonPage() {
         setLoading(false)
       })
       .catch(err => {
-        if (err.response?.data?.upgrade) navigate('/pricing?upgrade=1')
+        if (err.response?.data?.upgrade) navigate('/pricing')
+        else if (err.response?.status === 403) navigate('/pricing')
         else navigate('/courses')
       })
   }, [id, navigate])
