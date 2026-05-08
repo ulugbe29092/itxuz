@@ -465,4 +465,14 @@ router.post('/retake-requests/:id/reject', async (req, res) => {
   }
 });
 
+// DELETE /api/admin/quiz-violations/:id
+router.delete('/quiz-violations/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM quiz_violations WHERE id=$1', [req.params.id])
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 module.exports = router;

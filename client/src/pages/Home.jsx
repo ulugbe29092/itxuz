@@ -304,7 +304,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
+      {/* TESTIMONIALS - faqat izohlar bo'lsa ko'rsatish */}
+      {TESTIMONIALS.length > 0 && (
       <section style={{ padding: '5rem 0' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
@@ -313,6 +314,7 @@ export default function Home() {
           <TestimonialsCarousel />
         </div>
       </section>
+      )}
 
       {/* CTA */}
       <section style={{ padding: '5rem 0', background: 'linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.1))', borderTop: '1px solid var(--border)' }}>

@@ -138,15 +138,15 @@ export default function Pricing() {
         .page-hero-section{padding:4rem 0 2rem;background:linear-gradient(135deg,var(--bg2),var(--bg3));border-bottom:1px solid var(--border)}
         .page-hero-title{font-size:2.5rem;font-weight:800;margin-bottom:.5rem}
         .page-hero-sub{color:var(--text-muted)}
-        .pricing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
-        .pricing-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2rem;position:relative;transition:transform .3s}
+        .pricing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;align-items:stretch}
+        .pricing-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2rem;position:relative;transition:transform .3s;display:flex;flex-direction:column;height:100%}
         .pricing-card:hover{transform:translateY(-6px)}
         .pricing-card.popular{border-color:var(--primary);box-shadow:0 0 40px rgba(99,102,241,.2)}
         .pricing-card.vip{border-color:#f59e0b}
         .popular-ribbon{position:absolute;top:-1px;right:1.5rem;background:var(--gradient);color:#fff;font-size:.7rem;font-weight:700;padding:.3rem .8rem;border-radius:0 0 8px 8px}
         .pricing-price{font-size:2rem;font-weight:800;margin:.8rem 0 .2rem}
         .pricing-dur{font-size:.8rem;color:var(--text-muted);margin-bottom:1.5rem}
-        .pricing-features{list-style:none;margin-bottom:1.5rem}
+        .pricing-features{list-style:none;margin-bottom:1.5rem;flex:1}
         .pricing-features li{display:flex;align-items:center;gap:.5rem;padding:.35rem 0;font-size:.85rem;border-bottom:1px solid rgba(255,255,255,.04)}
         .payment-info-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;margin-bottom:1.2rem}
         .payment-info-box h4{font-size:.9rem;font-weight:700;margin-bottom:.8rem;color:var(--text-muted)}

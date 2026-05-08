@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Users, BookOpen, Video,
-  CreditCard, FileQuestion, Globe, LogOut, GraduationCap, ShieldCheck, RotateCcw
+  CreditCard, FileQuestion, LogOut, GraduationCap, ShieldCheck, RotateCcw
 } from 'lucide-react'
 import useAuthStore from '../../store/authStore'
 
@@ -71,9 +71,6 @@ export default function AdminLayout() {
 
         {/* Bottom */}
         <div style={{ padding: '0 0.8rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '1rem' }}>
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0.65rem 0.9rem', borderRadius: 10, color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '0.2rem', textDecoration: 'none', transition: 'all 0.2s' }}>
-            <Globe size={17} /> Saytga o'tish
-          </Link>
           <button onClick={() => { logout(); navigate('/') }} style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0.65rem 0.9rem', borderRadius: 10, color: '#ef4444', fontSize: '0.88rem', background: 'none', border: 'none', cursor: 'pointer', width: '100%', fontFamily: 'inherit', transition: 'all 0.2s' }}>
             <LogOut size={17} /> Chiqish
           </button>

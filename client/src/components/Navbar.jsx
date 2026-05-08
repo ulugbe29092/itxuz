@@ -48,7 +48,7 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }} className="nav-desktop">
-            {navLinks.map(({ to, icon, label }) => (
+            {!user?.role || user.role !== 'admin' ? navLinks.map(({ to, icon, label }) => (
               <Link key={to} to={to} style={{
                 display: 'flex', alignItems: 'center', gap: '0.4rem',
                 padding: '0.5rem 0.9rem', borderRadius: 8,
@@ -59,9 +59,9 @@ export default function Navbar() {
               }}>
                 {icon} {label}
               </Link>
-            ))}
+            )) : null}
 
-            {user && (
+            {user && user.role !== 'admin' && (
               <Link to="/dashboard" style={{
                 display: 'flex', alignItems: 'center', gap: '0.4rem',
                 padding: '0.5rem 0.9rem', borderRadius: 8,
@@ -82,7 +82,7 @@ export default function Navbar() {
                 background: isActive('/admin') ? 'rgba(245,158,11,0.1)' : 'transparent',
                 transition: 'all 0.2s', textDecoration: 'none',
               }}>
-                <ShieldCheck size={16} /> Admin
+                <ShieldCheck size={16} /> Admin Panel
               </Link>
             )}
           </div>
