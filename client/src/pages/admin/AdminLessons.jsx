@@ -13,7 +13,7 @@ export default function AdminLessons() {
   const [uploading, setUploading] = useState(false)
   const [form, setForm] = useState({
     course_id: '', title: '', description: '',
-    video_url: '', duration_minutes: '', order_num: ''
+    video_url: '', order_num: ''
   })
 
   const load = async () => {
@@ -36,7 +36,6 @@ export default function AdminLessons() {
       fd.append('title', form.title)
       fd.append('description', form.description || '')
       fd.append('video_type', videoType)
-      fd.append('duration_minutes', form.duration_minutes || '0')
       fd.append('order_num', form.order_num || '0')
 
       if (videoType === 'youtube') {
@@ -49,7 +48,7 @@ export default function AdminLessons() {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
       toast.success("Dars qo'shildi!")
-      setForm({ course_id: '', title: '', description: '', video_url: '', duration_minutes: '', order_num: '' })
+      setForm({ course_id: '', title: '', description: '', video_url: '', order_num: '' })
       setVideoFile(null)
       setVideoType('youtube')
       load()
@@ -149,10 +148,6 @@ export default function AdminLessons() {
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Davomiyligi (daqiqa)</label>
-              <input className="form-input" type="number" placeholder="15" value={form.duration_minutes} onChange={e => setForm(f => ({ ...f, duration_minutes: e.target.value }))} />
-            </div>
-            <div className="form-group">
               <label className="form-label">Tartib raqami</label>
               <input className="form-input" type="number" placeholder="1" value={form.order_num} onChange={e => setForm(f => ({ ...f, order_num: e.target.value }))} />
             </div>
@@ -180,7 +175,7 @@ export default function AdminLessons() {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
-              <tr>{['ID', 'Kurs', 'Dars nomi', 'Turi', 'Davomiylik', 'Tartib', 'Amallar'].map(h =>
+              <tr>{['ID', 'Kurs', 'Dars nomi', 'Turi', 'Holat', 'Tartib', 'Amallar'].map(h =>
                 <th key={h} style={{ textAlign: 'left', padding: '0.7rem 1rem', background: 'var(--bg2)', color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.78rem', textTransform: 'uppercase', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>{h}</th>
               )}</tr>
             </thead>
@@ -204,7 +199,6 @@ export default function AdminLessons() {
                         {l.is_blocked ? 'Bloklangan' : 'Faol'}
                       </span>
                     </td>
-                    <td style={{ padding: '0.8rem 1rem', borderBottom: '1px solid var(--border)' }}>{l.duration_minutes} min</td>
                     <td style={{ padding: '0.8rem 1rem', borderBottom: '1px solid var(--border)' }}>{l.order_num}</td>
                     <td style={{ padding: '0.8rem 1rem', borderBottom: '1px solid var(--border)' }}>
                       <div style={{ display: 'flex', gap: '0.4rem' }}>

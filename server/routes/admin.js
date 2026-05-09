@@ -7,6 +7,28 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+// Course icon upload storage
+const iconStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '../uploads/icons');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `icon_${Date.now()}_${Math.random().toString(36).substr(2, 6)}${ext}`);
+  },
+});
+const iconUpload = multer({
+  storage: iconStorage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.png', '.jpg', '.jpeg', '.svg'];
+    if (allowed.includes(path.extname(file.originalname).toLowerCase())) cb(null, true);
+    else cb(new Error('Faqat PNG, JPG, SVG fayllar'));
+  },
+});
+
 // Video upload storage
 const videoStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -192,12 +214,16 @@ router.get('/courses', async (req, res) => {
   }
 });
 
-router.post('/courses', async (req, res) => {
-  const { title, slug, description, icon, order_num } = req.body;
+router.post('/courses', iconUpload.single('icon'), async (req, res) => {
+  const { title, slug, description, order_num } = req.body;
   try {
+    let iconUrl = '';
+    if (req.file) {
+      iconUrl = '/uploads/icons/' + req.file.filename;
+    }
     await pool.query(
       'INSERT INTO courses (title,slug,description,icon,order_num) VALUES ($1,$2,$3,$4,$5)',
-      [title, slug, description, icon, order_num || 0]
+      [title, slug, description, iconUrl, order_num || 0]
     );
     res.json({ success: true });
   } catch (err) {
@@ -207,6 +233,12 @@ router.post('/courses', async (req, res) => {
 
 router.delete('/courses/:id', async (req, res) => {
   try {
+    // Icon faylni ham o'chirish
+    const course = await pool.query('SELECT icon FROM courses WHERE id=$1', [req.params.id]);
+    if (course.rows.length && course.rows[0].icon) {
+      const filePath = path.join(__dirname, '..', course.rows[0].icon);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    }
     await pool.query('DELETE FROM courses WHERE id=$1', [req.params.id]);
     res.json({ success: true });
   } catch (err) {
@@ -229,7 +261,7 @@ router.get('/lessons', async (req, res) => {
 
 // POST /api/admin/lessons — YouTube yoki local video
 router.post('/lessons', videoUpload.single('video_file'), async (req, res) => {
-  const { course_id, title, description, video_url, video_type, duration_minutes, order_num } = req.body;
+  const { course_id, title, description, video_url, video_type, order_num } = req.body;
   try {
     let finalVideoUrl = video_url || '';
     let finalVideoType = video_type || 'youtube';
@@ -240,11 +272,61 @@ router.post('/lessons', videoUpload.single('video_file'), async (req, res) => {
       finalVideoType = 'local';
     }
 
-    await pool.query(
-      `INSERT INTO lessons (course_id,title,description,video_url,video_type,duration_minutes,order_num)
-       VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-      [course_id, title, description, finalVideoUrl, finalVideoType, duration_minutes || 0, order_num || 0]
+    // Video qo'shish
+    const result = await pool.query(
+      `INSERT INTO lessons (course_id,title,description,video_url,video_type,order_num)
+       VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
+      [course_id, title, description, finalVideoUrl, finalVideoType, order_num || 0]
     );
+
+    const lessonId = result.rows[0].id;
+
+    // Kurs nomini olish
+    const courseResult = await pool.query('SELECT title FROM courses WHERE id=$1', [course_id]);
+    const courseTitle = courseResult.rows[0]?.title || '';
+
+    // Avtomatik quiz yaratish (AI orqali)
+    try {
+      const quizTitle = `${title} - Test`;
+      const quizResult = await pool.query(
+        'INSERT INTO quizzes (lesson_id,title,pass_percentage) VALUES ($1,$2,70) RETURNING id',
+        [lessonId, quizTitle]
+      );
+      const quizId = quizResult.rows[0].id;
+
+      // AI orqali 30 ta savol generatsiya qilish
+      const axios = require('axios');
+      const aiResponse = await axios.post('http://localhost:5000/api/ai-assistant/generate-quiz', {
+        courseTitle,
+        lessonTitle: title,
+        questionCount: 30
+      }, {
+        timeout: 60000 // 60 soniya
+      });
+
+      if (aiResponse.data.questions && aiResponse.data.questions.length > 0) {
+        // Savollarni bazaga qo'shish
+        for (const q of aiResponse.data.questions) {
+          const qResult = await pool.query(
+            'INSERT INTO quiz_questions (quiz_id,question_text) VALUES ($1,$2) RETURNING id',
+            [quizId, q.question]
+          );
+          const questionId = qResult.rows[0].id;
+
+          // Variantlarni qo'shish
+          for (let i = 0; i < q.options.length; i++) {
+            await pool.query(
+              'INSERT INTO quiz_options (question_id,option_text,is_correct) VALUES ($1,$2,$3)',
+              [questionId, q.options[i], i === q.correctIndex ? 1 : 0]
+            );
+          }
+        }
+      }
+    } catch (aiErr) {
+      console.error('AI quiz generation error:', aiErr.message);
+      // Quiz yaratilmasa ham dars qo'shiladi
+    }
+
     res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });

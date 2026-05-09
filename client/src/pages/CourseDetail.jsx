@@ -41,9 +41,14 @@ export default function CourseDetail() {
             </div>
           </div>
           <div className="course-detail-header">
-            <div style={{ width: 72, height: 72, borderRadius: 18, background: getCourseLogo(course.slug).bg, border: `1px solid ${getCourseLogo(course.slug).color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              {getCourseLogo(course.slug, 40).svg}
-            </div>
+            {(() => {
+              const logo = getCourseLogo(course.slug, 40, course.icon)
+              return (
+                <div style={{ width: 72, height: 72, borderRadius: 18, background: logo.bg, border: `1px solid ${logo.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {logo.svg}
+                </div>
+              )
+            })()}
             <div>
               <h1 className="page-hero-title">{course.title}</h1>
               <p className="page-hero-sub">{course.description}</p>

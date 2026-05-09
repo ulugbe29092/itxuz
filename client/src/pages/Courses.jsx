@@ -43,11 +43,12 @@ export default function Courses() {
         <div className="courses-grid">
           {courses.map((c, i) => {
             const pct = c.total_lessons > 0 ? Math.round((c.completed_lessons / c.total_lessons) * 100) : 0
+            const logo = getCourseLogo(c.slug, 36, c.icon)
             return (
               <div key={c.id} className={`course-card ${c.locked ? 'locked' : ''} fade-up`} style={{ animationDelay: `${i * 0.04}s` }}>
                 <div className="course-card-top">
-                  <div style={{ width: 64, height: 64, borderRadius: 16, background: getCourseLogo(c.slug).bg, border: `1px solid ${getCourseLogo(c.slug).color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
-                    {getCourseLogo(c.slug, 36).svg}
+                  <div style={{ width: 64, height: 64, borderRadius: 16, background: logo.bg, border: `1px solid ${logo.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
+                    {logo.svg}
                   </div>
                   {c.locked && (
                     <div className="course-lock-overlay">

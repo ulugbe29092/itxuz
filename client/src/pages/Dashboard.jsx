@@ -26,7 +26,8 @@ function Sidebar({ user }) {
           ? <img src={user.avatar} alt="" className="dash-avatar-img" />
           : <div className="dash-avatar-placeholder">{user.first_name?.[0]?.toUpperCase()}</div>
         }
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+          <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{user.first_name}</span>
           <span className={`badge-${user.plan}`}>{user.plan?.toUpperCase()}</span>
         </div>
       </div>
@@ -123,7 +124,7 @@ export default function Dashboard() {
             {(data?.courses || []).map((c, i) => {
               const locked = user?.role !== 'admin' && i >= limit
               const pct = c.total_lessons > 0 ? Math.round((c.completed_lessons / c.total_lessons) * 100) : 0
-              const logo = getCourseLogo(c.slug)
+              const logo = getCourseLogo(c.slug, 32, c.icon)
               return (
                 <div key={c.id} className={`dash-course-row ${locked ? 'locked' : ''}`}>
                   <div style={{ width: 42, height: 42, borderRadius: 11, background: logo.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

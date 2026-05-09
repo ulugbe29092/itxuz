@@ -95,7 +95,7 @@ function CourseSlider() {
               onMouseEnter={e => { e.currentTarget.style.borderColor = logo.color; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${logo.color}30` }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}
             >
-              <div style={{ width: 56, height: 56, borderRadius: 14, background: logo.bg, border: `1px solid ${logo.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+              <div style={{ width: 64, height: 64, borderRadius: 14, background: logo.bg, border: `1px solid ${logo.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
                 {logo.svg}
               </div>
               <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.3rem' }}>{c.title}</div>

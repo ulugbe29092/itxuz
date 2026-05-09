@@ -99,6 +99,7 @@ export default function Navbar() {
                         {user.first_name?.[0]?.toUpperCase()}
                       </div>
                   }
+                  <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{user.first_name}</span>
                   <span className={`badge-${user.plan}`} style={{ fontSize: '0.62rem' }}>{user.plan?.toUpperCase()}</span>
                 </Link>
                 <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.45rem 0.85rem', borderRadius: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', fontWeight: 500, fontSize: '0.84rem', cursor: 'pointer', transition: 'all 0.2s' }}

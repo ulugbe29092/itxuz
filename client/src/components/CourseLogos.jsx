@@ -188,8 +188,20 @@ const logos = {
  * Kurs slug bo'yicha logo qaytaradi
  * @param {string} slug - kurs slug
  * @param {number} size - icon o'lchami (default 32)
+ * @param {string} iconUrl - server icon URL (agar mavjud bo'lsa)
  */
-export function getCourseLogo(slug, size = 32) {
+export function getCourseLogo(slug, size = 32, iconUrl = null) {
+  // Agar server icon mavjud bo'lsa, uni ishlatish
+  if (iconUrl) {
+    return {
+      color: '#6366f1',
+      bg: '#6366f118',
+      svg: (
+        <img src={iconUrl} alt={slug} style={{ width: size, height: size, objectFit: 'contain' }} />
+      ),
+    }
+  }
+
   const entry = logos[slug]
   if (!entry) {
     // Default icon

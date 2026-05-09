@@ -61,7 +61,7 @@ ${context ? `\n\nHozirgi kontekst:\n${context}` : ''}`
   }
 })
 
-// Quiz yaratish - AI yordami bilan
+// Quiz yaratish - AI yordami bilan (admin panel uchun)
 router.post('/generate-quiz', adminMiddleware, async (req, res) => {
   try {
     const { topic, difficulty, questionCount, lessonId } = req.body
@@ -146,6 +146,74 @@ Faqat JSON formatda javob bering, boshqa matn yo'q.`
     res.status(500).json({ 
       error: 'Quiz yaratishda xatolik',
       details: error.message 
+    })
+  }
+})
+
+// Avtomatik quiz generatsiya (video yuklanganda)
+router.post('/generate-quiz-auto', async (req, res) => {
+  try {
+    const { courseTitle, lessonTitle, questionCount } = req.body
+
+    if (!courseTitle || !lessonTitle) {
+      return res.status(400).json({ error: 'Kurs va dars nomi talab qilinadi' })
+    }
+
+    const count = questionCount || 30
+
+    const prompt = `"${courseTitle}" kursi bo'yicha "${lessonTitle}" darsiga ${count} ta test savolini yarating.
+
+Savollar:
+- O'zbek tilida
+- Aniq va tushunarli
+- Amaliy va nazariy bilimlarni tekshiruvchi
+- Har xil qiyinlik darajasida (oson, o'rta, qiyin)
+
+Har bir savol uchun:
+- Savol matni
+- 4 ta javob varianti
+- To'g'ri javob indeksi (0-3)
+
+Format (JSON):
+[
+  {
+    "question": "Savol matni?",
+    "options": ["Variant 1", "Variant 2", "Variant 3", "Variant 4"],
+    "correctIndex": 1
+  }
+]
+
+MUHIM: Faqat JSON array qaytaring, boshqa matn yo'q!`
+
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
+    const result = await model.generateContent(prompt)
+    const response = await result.response
+    let text = response.text()
+
+    // JSON ni tozalash
+    text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+    
+    // Agar matn JSON bilan boshlanmasa, uni topish
+    const jsonStart = text.indexOf('[')
+    const jsonEnd = text.lastIndexOf(']')
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      text = text.substring(jsonStart, jsonEnd + 1)
+    }
+
+    const questions = JSON.parse(text)
+
+    res.json({
+      success: true,
+      questions,
+      count: questions.length
+    })
+
+  } catch (error) {
+    console.error('Auto quiz generation error:', error)
+    res.status(500).json({ 
+      error: 'Avtomatik quiz yaratishda xatolik',
+      details: error.message,
+      questions: [] // Bo'sh array qaytarish
     })
   }
 })

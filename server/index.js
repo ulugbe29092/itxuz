@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Upload papkalarini yaratish
-['uploads/payments', 'uploads/avatars', 'uploads/videos'].forEach(dir => {
+['uploads/payments', 'uploads/avatars', 'uploads/videos', 'uploads/icons'].forEach(dir => {
   const p = path.join(__dirname, dir);
   if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
 });
@@ -29,6 +29,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads/videos', express.static(path.join(__dirname, 'uploads/videos')));
+app.use('/uploads/icons', express.static(path.join(__dirname, 'uploads/icons')));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -39,7 +40,7 @@ app.use('/api/user', require('./routes/user'));
 app.use('/api/payment', require('./routes/payment'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/stats', require('./routes/stats'));
-app.use('/api/ai', require('./routes/ai-assistant'));
+app.use('/api/ai-assistant', require('./routes/ai-assistant'));
 
 // Auto-block expired free users (SQLite uchun 0/1 ishlatiladi)
 const pool = require('./db');
