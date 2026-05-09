@@ -4,7 +4,8 @@ import {
   LayoutDashboard, BookOpen, User, Gem, LogOut,
   BookCheck, Award, TrendingUp, Lock, ChevronRight,
   ArrowUpRight, Clock, CheckCircle, FileQuestion
-} from 'lucide-react'import api from '../api/axios'
+} from 'lucide-react'
+import api from '../api/axios'
 import useAuthStore from '../store/authStore'
 import Loader from '../components/Loader'
 import { getCourseLogo } from '../components/CourseLogos'
