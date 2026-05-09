@@ -127,13 +127,8 @@ function CourseSlider() {
               </div>
               <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '0.5rem', color: 'var(--text)' }}>{c.title}</div>
               <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{c.desc}</div>
-            </div>
-            )
-          })}
-        </div>
-      </div>
-              <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.3rem' }}>{c.title}</div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{c.desc}</div>
+              <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '0.5rem', color: 'var(--text)' }}>{c.title}</div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{c.desc}</div>
             </div>
             )
           })}
