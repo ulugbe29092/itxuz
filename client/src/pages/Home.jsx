@@ -77,8 +77,8 @@ function CourseSlider() {
     <div style={{ position: 'relative' }}>
       <div style={{ overflow: 'hidden' }}>
         <div style={{
-          display: 'flex', gap: '1rem',
-          transform: `translateX(calc(-${idx * (100 / visible)}% - ${idx * (16 / visible)}px))`,
+          display: 'flex', gap: '1.2rem',
+          transform: `translateX(calc(-${idx * (100 / visible)}% - ${idx * (19.2 / visible)}px))`,
           transition: 'transform 0.6s cubic-bezier(.4,0,.2,1)',
           width: `${(total / visible) * 100}%`
         }}>
@@ -86,18 +86,52 @@ function CourseSlider() {
             const logo = getCourseLogo(c.slug)
             return (
             <div key={i} style={{
-              flex: `0 0 calc(${100 / total}% - ${(total - 1) * 16 / total}px)`,
-              background: 'var(--card)', border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)', padding: '1.5rem',
-              textAlign: 'center', transition: 'all 0.3s', cursor: 'pointer',
-              minWidth: 0
+              flex: `0 0 calc(${100 / total}% - ${(total - 1) * 19.2 / total}px)`,
+              background: 'linear-gradient(135deg, var(--card), var(--card2))', 
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-lg)', 
+              padding: '2rem 1.5rem',
+              textAlign: 'center', 
+              transition: 'all 0.3s', 
+              cursor: 'pointer',
+              minWidth: 0,
+              position: 'relative',
+              overflow: 'hidden'
             }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = logo.color; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${logo.color}30` }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}
+              onMouseEnter={e => { 
+                e.currentTarget.style.borderColor = logo.color
+                e.currentTarget.style.transform = 'translateY(-6px)'
+                e.currentTarget.style.boxShadow = `0 12px 32px ${logo.color}40`
+              }}
+              onMouseLeave={e => { 
+                e.currentTarget.style.borderColor = 'var(--border)'
+                e.currentTarget.style.transform = ''
+                e.currentTarget.style.boxShadow = ''
+              }}
             >
-              <div style={{ width: 64, height: 64, borderRadius: 14, background: logo.bg, border: `1px solid ${logo.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
-                {logo.svg}
+              <div style={{ 
+                width: 80, 
+                height: 80, 
+                borderRadius: 16, 
+                background: logo.bg, 
+                border: `2px solid ${logo.color}40`, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                margin: '0 auto 1.2rem',
+                boxShadow: `0 4px 16px ${logo.color}20`
+              }}>
+                <div style={{ transform: 'scale(1.3)' }}>
+                  {logo.svg}
+                </div>
               </div>
+              <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '0.5rem', color: 'var(--text)' }}>{c.title}</div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{c.desc}</div>
+            </div>
+            )
+          })}
+        </div>
+      </div>
               <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.3rem' }}>{c.title}</div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{c.desc}</div>
             </div>
