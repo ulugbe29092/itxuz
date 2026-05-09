@@ -26,72 +26,62 @@ router.post('/ai-chat', async (req, res) => {
   const { message, userName, userRole } = req.body;
   if (!message) return res.json({ reply: 'Xabar yuboring.' });
 
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyCcwGs8dz2RtkKGLk_6007bIK4M5Kij_-M';
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-  // Foydalanuvchi konteksti
   const greeting = userName
     ? (userRole === 'admin'
-        ? `Siz admin ${userName} bilan gaplashyapsiz. Uni hurmat bilan "Siz" deb murojaat qiling va ism-familiyasi bilan chaqiring.`
-        : `Foydalanuvchi ismi: ${userName}. Uni doim ismi bilan chaqiring.`)
+        ? `Siz admin ${userName} bilan gaplashyapsiz.`
+        : `Foydalanuvchi ismi: ${userName}.`)
     : 'Mehmon foydalanuvchi.';
 
   const systemPrompt = `Sen ITX platformasining AI yordamchisisisan. 
 ${greeting}
 
-ITX haqida to'liq ma'lumot:
-- ITX — O'zbekistondagi #1 onlayn IT o'rgatish platformasi
-- Yaratuvchi: Valiyev Ulug'bek
-- Telegram: @valiyevv_01
-- Telefon: +998906373754
-- Email: thisvaliyev@gmail.com
+ITX haqida:
+- O'zbekistondagi #1 onlayn IT platformasi
+- Yaratuvchi: Valiyev Ulug'bek, Telegram: @valiyevv_01, Tel: +998906373754
 
-Kurslar (15 ta):
-HTML & CSS, JavaScript, Python, React.js, Node.js, SQL & PostgreSQL, Git & GitHub, Linux & Terminal, Docker & DevOps, Vue.js, TypeScript, MongoDB, Flutter & Dart, Machine Learning, Cybersecurity
+Kurslar (15 ta): HTML & CSS, JavaScript, Python, React.js, Node.js, SQL, Git, Linux, Docker, Vue.js, TypeScript, MongoDB, Flutter, Machine Learning, Cybersecurity
 
-Tarif rejalari:
-- Free: 3 kun bepul, 3 ta kurs, AI cheklangan
-- Pro: 700,000 so'm/oy — barcha kurslar, AI chat, sertifikat
-- Max: 1,500,000 so'm/oy — Pro + mentor, loyiha tekshiruvi, prioritet yordam
-- VIP: 3,000,000 so'm/oy — Max + ish kafolati, CV tayyorlash, intervyu tayyorligi, admin bilan aloqa
+Narxlar:
+- Free: bepul, 3 kun, 3 kurs
+- Pro: 700,000 so'm/oy
+- Max: 1,500,000 so'm/oy  
+- VIP: 3,000,000 so'm/oy (ish kafolati bilan)
 
-Qoidalar:
-1. Doim o'zbek tilida javob ber
-2. Qisqa va aniq javob ber (3-5 jumla)
-3. Foydalanuvchini ismi bilan chaqir
-4. Sayt haqida ko'proq ma'lumot ber
-5. Saytdan tashqari savollarga ham javob ber, lekin saytga qaytishga undab qo'y
-6. Admin bo'lsa "Siz" deb murojaat qil`;
+Qoidalar: O'zbek tilida, qisqa (2-4 jumla), foydalanuvchini ismi bilan chaqir.
+
+Foydalanuvchi savoli: ${message}`
 
   try {
+    if (!GEMINI_API_KEY) throw new Error('No API key');
+    
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: systemPrompt + '\n\nFoydalanuvchi: ' + message }
-              ]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 500,
-          }
+          contents: [{ parts: [{ text: systemPrompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 300 }
         })
       }
     );
 
-    if (!response.ok) throw new Error('Gemini API error: ' + response.status);
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('Gemini API error:', response.status, errText);
+      throw new Error('Gemini API error: ' + response.status);
+    }
 
     const data = await response.json();
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || fallbackReply(message);
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!reply) throw new Error('No reply from Gemini');
+    
     res.json({ reply });
 
   } catch (err) {
-    console.error('Gemini error:', err.message);
+    console.error('AI chat error:', err.message);
     res.json({ reply: fallbackReply(message) });
   }
 });
