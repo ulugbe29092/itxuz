@@ -9,18 +9,11 @@ router.post('/register/step1', async (req, res) => {
   if (!first_name || !last_name || !email || !phone)
     return res.status(400).json({ error: 'Barcha maydonlarni to\'ldiring' });
 
-  if (!email.toLowerCase().endsWith('@gmail.com'))
-    return res.status(400).json({ error: 'Email @gmail.com bilan tugashi kerak' });
-
   const phoneRegex = /^\+998\d{9}$/;
   if (!phoneRegex.test(phone))
     return res.status(400).json({ error: 'Telefon: +998 + 9 ta raqam (masalan +998901234567)' });
 
   try {
-    const emailCheck = await pool.query('SELECT id FROM users WHERE email=$1', [email.toLowerCase()]);
-    if (emailCheck.rows.length)
-      return res.status(400).json({ error: 'Bu email allaqachon ro\'yxatdan o\'tgan' });
-
     res.json({ success: true, message: '1-qadam muvaffaqiyatli' });
   } catch (err) {
     res.status(500).json({ error: 'Server xatosi' });
@@ -43,10 +36,6 @@ router.post('/register/step2', async (req, res) => {
     const usernameCheck = await pool.query('SELECT id FROM users WHERE username=$1', [username.toLowerCase()]);
     if (usernameCheck.rows.length)
       return res.status(400).json({ error: 'Bu username band. Boshqa tanlang' });
-
-    const emailCheck = await pool.query('SELECT id FROM users WHERE email=$1', [email.toLowerCase()]);
-    if (emailCheck.rows.length)
-      return res.status(400).json({ error: 'Bu email allaqachon ro\'yxatdan o\'tgan' });
 
     const hash = await bcrypt.hash(password, 10);
     const planExpiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);

@@ -49,7 +49,6 @@ export default function Register() {
     e.preventDefault()
     const { first_name, last_name, email, phone } = step1
     if (!first_name || !last_name || !email || !phone) return toast.error('Barcha maydonlarni to\'ldiring')
-    if (!email.toLowerCase().endsWith('@gmail.com')) return toast.error('Email @gmail.com bilan tugashi kerak')
     if (!/^\+998\d{9}$/.test(phone)) return toast.error('Telefon: +998 + 9 ta raqam')
     setLoading(true)
     try {
@@ -154,20 +153,34 @@ export default function Register() {
                 <label className="form-label">Email</label>
                 <div className="input-icon-wrap">
                   <Mail size={16} className="input-icon" />
-                  <input className="form-input with-icon" type="email" placeholder="example@gmail.com"
+                  <input className="form-input with-icon" type="email" placeholder="email@example.com"
                     value={step1.email} onChange={e => setStep1({ ...step1, email: e.target.value })} required />
                 </div>
-                <span className="field-hint">Faqat @gmail.com qabul qilinadi</span>
               </div>
 
               <div className="form-group">
                 <label className="form-label">Telefon</label>
-                <div className="input-icon-wrap">
+                <div className="input-icon-wrap" style={{ position: 'relative' }}>
                   <Phone size={16} className="input-icon" />
-                  <input className="form-input with-icon" placeholder="+998901234567"
-                    value={step1.phone} onChange={e => setStep1({ ...step1, phone: phoneAutoFormat(e.target.value) })} required />
+                  <span style={{
+                    position: 'absolute', left: '2.6rem', top: '50%', transform: 'translateY(-50%)',
+                    color: 'var(--text)', fontWeight: 600, fontSize: '0.9rem', pointerEvents: 'none', zIndex: 2
+                  }}>+998</span>
+                  <input
+                    className="form-input with-icon"
+                    style={{ paddingLeft: '5.2rem' }}
+                    placeholder="901234567"
+                    value={step1.phone.replace('+998', '')}
+                    maxLength={9}
+                    inputMode="numeric"
+                    onChange={e => {
+                      const digits = e.target.value.replace(/\D/g, '').slice(0, 9)
+                      setStep1({ ...step1, phone: '+998' + digits })
+                    }}
+                    required
+                  />
                 </div>
-                <span className="field-hint">Format: +998 + 9 ta raqam</span>
+                <span className="field-hint">9 ta raqam kiriting (masalan: 901234567)</span>
               </div>
 
               <button type="submit" className="btn btn-primary btn-block btn-lg auth-submit" disabled={loading}>

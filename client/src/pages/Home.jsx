@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Users, BookOpen, Video, Star, CheckCircle, XCircle,
+  Users, BookOpen, Video, Star, CheckCircle,
   ArrowRight, TrendingUp, Heart, Phone, Mail,
   MessageCircle, ChevronLeft, ChevronRight, GraduationCap,
   Code2, Zap, Shield, Award
@@ -28,21 +28,6 @@ const COURSES = [
   { slug: 'cybersecurity',    title: 'Cybersecurity',    desc: 'Axborot xavfsizligi' },
 ]
 
-const PLANS = [
-  { name: 'Free', price: '0', dur: '3 kun', badge: 'free', features: ['3 ta kurs', 'Video darslar', 'AI (cheklangan)'], no: ['Sertifikat', 'Mentor'] },
-  { name: 'Pro', price: '700,000', dur: '30 kun', badge: 'pro', popular: true, features: ['Barcha kurslar', 'Video darslar', 'AI chat', 'Sertifikat'], no: ['Mentor'] },
-  { name: 'Max', price: '1,500,000', dur: '30 kun', badge: 'max', features: ['Barcha kurslar', 'AI chat', 'Sertifikat', 'Mentor', 'Loyiha tekshiruvi'], no: ['Ish kafolati'] },
-  { name: 'VIP', price: '3,000,000', dur: '30 kun', badge: 'vip', features: ['Barcha kurslar', 'AI chat', 'Sertifikat', 'Mentor', 'Ish kafolati', 'CV tayyorlash', 'Intervyu'], no: [] },
-]
-
-const TESTIMONIALS = [
-  { name: 'Aziz Karimov', role: 'Frontend Developer', text: 'ITX orqali 6 oyda JavaScript va React ni organdim. Hozir IT kompaniyada ishlayapman! Kurslar juda tushunarli va amaliy.', rating: 5 },
-  { name: 'Malika Yusupova', role: 'Data Scientist', text: 'Python kursini tugatib, Data Science sohasiga kirdim. Mentor yordami juda foydali boldi! Tavsiya qilaman.', rating: 5 },
-  { name: 'Jasur Toshmatov', role: 'Backend Developer', text: 'VIP paket orqali ish kafolati oldim. 3 oy ichida intervyudan otib, yaxshi maosh bilan ishga kirdim!', rating: 5 },
-  { name: 'Dilnoza Rahimova', role: 'Full Stack Developer', text: 'Node.js va React kurslarini birgalikda olib, full stack developer boldim. ITX eng yaxshi platforma!', rating: 5 },
-  { name: 'Bobur Xasanov', role: 'DevOps Engineer', text: 'Docker va Linux kurslaridan keyin DevOps sohasiga kirdim. Kurslar professional darajada tayyorlangan.', rating: 5 },
-]
-
 function Counter({ target, decimal }) {
   const [val, setVal] = useState(0)
   useEffect(() => {
@@ -58,36 +43,35 @@ function Counter({ target, decimal }) {
   return <span>{val}</span>
 }
 
-// Auto-sliding courses (5 ta ko'rinadi, 5 sekundda o'tadi)
+// Auto-sliding courses (4 ta ko'rinadi, 5 sekundda o'tadi)
 function CourseSlider() {
   const [idx, setIdx] = useState(0)
-  const visible = 5
   const total = COURSES.length
 
   useEffect(() => {
     const t = setInterval(() => {
-      setIdx(i => (i + 1) % (total - visible + 1))
+      setIdx(i => (i + 1) % (total - 4 + 1))
     }, 5000)
     return () => clearInterval(t)
   }, [])
 
   const prev = () => setIdx(i => Math.max(0, i - 1))
-  const next = () => setIdx(i => Math.min(total - visible, i + 1))
+  const next = () => setIdx(i => Math.min(total - 4, i + 1))
 
   return (
     <div style={{ position: 'relative' }}>
       <div style={{ overflow: 'hidden' }}>
         <div style={{
           display: 'flex', gap: '1rem',
-          transform: `translateX(calc(-${idx * (100 / visible)}% - ${idx * (16 / visible)}px))`,
+          transform: `translateX(calc(-${idx * (100 / 4)}% - ${idx * (16 / 4)}px))`,
           transition: 'transform 0.6s cubic-bezier(.4,0,.2,1)',
-          width: `${(total / visible) * 100}%`
+          width: `${(total / 4) * 100}%`
         }}>
           {COURSES.map((c, i) => {
             const logo = getCourseLogo(c.slug)
             return (
             <div key={i} style={{
-              flex: `0 0 calc(${100 / total}% - ${(total - 1) * 16 / total}px)`,
+              flex: `0 0 calc(${100 / 4}% - ${(4 - 1) * 16 / 4}px)`,
               background: 'var(--card)', border: '1px solid var(--border)',
               borderRadius: 'var(--radius-lg)', padding: '1.5rem',
               textAlign: 'center', transition: 'all 0.3s', cursor: 'pointer',
@@ -109,57 +93,12 @@ function CourseSlider() {
       <button onClick={prev} disabled={idx === 0} style={{ position: 'absolute', left: -20, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: 'var(--card)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', transition: 'all 0.2s', opacity: idx === 0 ? 0.3 : 1 }}>
         <ChevronLeft size={18} />
       </button>
-      <button onClick={next} disabled={idx >= total - visible} style={{ position: 'absolute', right: -20, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: 'var(--card)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', transition: 'all 0.2s', opacity: idx >= total - visible ? 0.3 : 1 }}>
+      <button onClick={next} disabled={idx >= total - 4} style={{ position: 'absolute', right: -20, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: 'var(--card)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', transition: 'all 0.2s', opacity: idx >= total - 4 ? 0.3 : 1 }}>
         <ChevronRight size={18} />
       </button>
       {/* Dots */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
-        {Array.from({ length: total - visible + 1 }).map((_, i) => (
-          <button key={i} onClick={() => setIdx(i)} style={{ width: i === idx ? 24 : 8, height: 8, borderRadius: 4, background: i === idx ? 'var(--primary)' : 'var(--border)', border: 'none', cursor: 'pointer', transition: 'all 0.3s', padding: 0 }} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// Testimonials auto-carousel (3 ta ko'rinadi, 5 sekundda o'tadi)
-function TestimonialsCarousel() {
-  const [idx, setIdx] = useState(0)
-  const total = TESTIMONIALS.length
-
-  useEffect(() => {
-    const t = setInterval(() => setIdx(i => (i + 1) % total), 5000)
-    return () => clearInterval(t)
-  }, [])
-
-  // 3 ta ko'rsatish
-  const visible = [
-    TESTIMONIALS[idx % total],
-    TESTIMONIALS[(idx + 1) % total],
-    TESTIMONIALS[(idx + 2) % total],
-  ]
-
-  return (
-    <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.5rem' }} className="testimonials-grid-resp">
-        {visible.map((t, i) => (
-          <div key={i} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2rem', animation: 'fadeIn 0.5s ease' }}>
-            <div style={{ display: 'flex', gap: '0.2rem', marginBottom: '1rem' }}>
-              {[...Array(t.rating)].map((_, j) => <Star key={j} size={14} fill="#f59e0b" color="#f59e0b" />)}
-            </div>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.7, marginBottom: '1.5rem', fontStyle: 'italic' }}>"{t.text}"</p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#fff', flexShrink: 0 }}>{t.name[0]}</div>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{t.name}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t.role}</div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
-        {TESTIMONIALS.map((_, i) => (
+        {Array.from({ length: total - 4 + 1 }).map((_, i) => (
           <button key={i} onClick={() => setIdx(i)} style={{ width: i === idx ? 24 : 8, height: 8, borderRadius: 4, background: i === idx ? 'var(--primary)' : 'var(--border)', border: 'none', cursor: 'pointer', transition: 'all 0.3s', padding: 0 }} />
         ))}
       </div>
@@ -221,7 +160,7 @@ export default function Home() {
                     <GraduationCap size={40} color="#fff" />
                   </div>
                   <div className="hero-center-text">ITX</div>
-                  <div className="hero-center-sub">IT Platform</div>
+                  <div className="hero-center-sub" style={{textAlign:'center',letterSpacing:'0.5px'}}>ITX IT PLATFORMA</div>
                 </div>
 
                 {/* Orbiting tech icons */}
@@ -312,64 +251,6 @@ export default function Home() {
               {user ? "Kurslarni ko'rish" : 'Bepul boshlash'} <ArrowRight size={18} />
             </Link>
           </div>
-        </div>
-      </section>
-
-      {/* PRICING */}
-      <section style={{ padding: '5rem 0', background: 'var(--bg2)' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '.8rem' }}>Tarif <span className="gradient-text">Rejalari</span></h2>
-            <p style={{ color: 'var(--text-muted)' }}>O'zingizga mos rejani tanlang</p>
-          </div>
-          <div className="pricing-grid-4">
-            {PLANS.map((p, i) => (
-              <div key={i} style={{
-                background: 'var(--card)',
-                border: `1px solid ${p.popular ? 'var(--primary)' : p.badge === 'vip' ? '#f59e0b' : 'var(--border)'}`,
-                borderRadius: 'var(--radius-lg)', padding: '2rem',
-                position: 'relative', transition: 'transform .3s',
-                boxShadow: p.popular ? '0 0 30px rgba(99,102,241,.2)' : 'none',
-                display: 'flex', flexDirection: 'column'
-              }}
-                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
-                onMouseLeave={e => e.currentTarget.style.transform = ''}
-              >
-                {p.popular && <div style={{ position: 'absolute', top: -1, right: '1.5rem', background: 'var(--gradient)', color: '#fff', fontSize: '.7rem', fontWeight: 700, padding: '.3rem .8rem', borderRadius: '0 0 8px 8px' }}>Mashhur</div>}
-                <span className={`badge-${p.badge}`}>{p.name}</span>
-                <div style={{ fontSize: '2rem', fontWeight: 800, margin: '.8rem 0 .2rem' }} className="gradient-text">{p.price}</div>
-                <div style={{ fontSize: '.8rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>so'm / {p.dur}</div>
-                <ul style={{ listStyle: 'none', marginBottom: '1.5rem', flex: 1 }}>
-                  {p.features.map(f => <li key={f} style={{ display: 'flex', alignItems: 'center', gap: '.5rem', padding: '.3rem 0', fontSize: '.85rem' }}><CheckCircle size={14} color="#22c55e" /> {f}</li>)}
-                  {p.no.map(f => <li key={f} style={{ display: 'flex', alignItems: 'center', gap: '.5rem', padding: '.3rem 0', fontSize: '.85rem', color: 'var(--text-muted)' }}><XCircle size={14} color="#ef4444" /> {f}</li>)}
-                </ul>
-                <Link to="/pricing" className={`btn ${p.popular || p.badge === 'vip' ? 'btn-primary' : 'btn-outline'} btn-block`} style={{ justifyContent: 'center', marginTop: 'auto' }}>Tanlash</Link>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS - faqat izohlar bo'lsa ko'rsatish */}
-      {TESTIMONIALS.length > 0 && (
-      <section style={{ padding: '5rem 0' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 800 }}>O'quvchilar <span className="gradient-text">fikrlari</span></h2>
-          </div>
-          <TestimonialsCarousel />
-        </div>
-      </section>
-      )}
-
-      {/* CTA */}
-      <section style={{ padding: '5rem 0', background: 'linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.1))', borderTop: '1px solid var(--border)' }}>
-        <div className="container" style={{ textAlign: 'center' }}>
-          <h2 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '1rem' }}>IT karyerangizni <span className="gradient-text">bugun boshlang!</span></h2>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>3 kunlik bepul sinov davri bilan hech qanday xavf yo'q.</p>
-          <Link to={user ? '/courses' : '/register'} className="btn btn-primary btn-lg">
-            {user ? "Kurslarni ko'rish" : 'Bepul boshlash'} <ArrowRight size={18} />
-          </Link>
         </div>
       </section>
 

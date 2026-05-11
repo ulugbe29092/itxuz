@@ -39,7 +39,7 @@ export default function Pricing() {
       fd.append('payment_proof', file)
       // Content-Type ni axios o'zi qo'yadi — qo'lda bermaslik kerak!
       await api.post('/payment/submit', fd)
-      toast.success("To'lov muvaffaqiyatli yuborildi! Admin tekshirib, tarifingizni faollashtiradi.")
+      toast.success("To'lovingiz qabul qilindi! 24 soat ichida adminlar to'lovni tasdiqlashadi.")
       setModal(null)
       setFile(null)
     } catch (err) {
@@ -104,6 +104,9 @@ export default function Pricing() {
             <div className="modal-body">
               <div className="payment-info-box">
                 <h4>To'lov ma'lumotlari:</h4>
+                <div className="payment-row">
+                  <span>Admin telefon:</span><strong><a href="tel:+998906373754" style={{color:'var(--primary)',textDecoration:'none'}}>+998 90 637 37 54</a></strong>
+                </div>
                 {[['Karta raqami', '8600 1234 5678 9012'], ['Karta egasi', 'ULUGBEK VALIYEV'], ['Summa', `${modal.price} so'm`]].map(([k, v]) => (
                   <div key={k} className="payment-row">
                     <span>{k}:</span><strong>{v}</strong>
@@ -113,6 +116,10 @@ export default function Pricing() {
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem', lineHeight: 1.6 }}>
                 Yuqoridagi karta raqamiga to'lov qiling va chekni rasmga olib yuklang.
               </p>
+              <div style={{background:'rgba(34,197,94,0.08)',border:'1px solid rgba(34,197,94,0.25)',borderRadius:'var(--radius)',padding:'0.8rem 1rem',marginBottom:'1rem',fontSize:'0.85rem',color:'#22c55e',lineHeight:1.6}}>
+                ✅ To'lovingiz tasdiqlandi — 24 soat ichida adminlar to'lovni tasdiqlashadi.<br/>
+                📞 Savol bo'lsa: <a href="tel:+998906373754" style={{color:'#22c55e',fontWeight:700}}>+998 90 637 37 54</a>
+              </div>
               <form onSubmit={handlePayment}>
                 <div className="form-group">
                   <label className="form-label">To'lov cheki (rasm)</label>
