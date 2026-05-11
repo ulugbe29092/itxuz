@@ -1,70 +1,160 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Users, BookOpen, Video, Star, CheckCircle,
+  Users, BookOpen, Video, Star, CheckCircle, XCircle,
   ArrowRight, TrendingUp, Heart, Phone, Mail,
-  MessageCircle, GraduationCap,
-  Code2, Zap, Shield, Award
+  MessageCircle, GraduationCap, Shield, Award, Zap, Clock,
+  Globe, Code2, Brain, Lock, PlayCircle, ChevronDown,
+  ChevronLeft, ChevronRight, Smartphone, Target, Layers
 } from 'lucide-react'
 import api from '../api/axios'
 import useAuthStore from '../store/authStore'
 import { getCourseLogo } from '../components/CourseLogos'
 
 const COURSES = [
-  { slug: 'html-css',         title: 'HTML & CSS',       desc: 'Web sahifalar yaratishning asosi' },
-  { slug: 'javascript',       title: 'JavaScript',       desc: 'Interaktiv web ilovalar' },
-  { slug: 'python',           title: 'Python',           desc: "Eng mashhur dasturlash tili" },
-  { slug: 'reactjs',          title: 'React.js',         desc: 'Zamonaviy frontend kutubxona' },
-  { slug: 'nodejs',           title: 'Node.js',          desc: 'Backend server dasturlash' },
-  { slug: 'sql-postgresql',   title: 'PostgreSQL',       desc: 'Kuchli SQL database' },
-  { slug: 'git-github',       title: 'Git & GitHub',     desc: 'Versiya boshqaruv tizimi' },
-  { slug: 'linux-terminal',   title: 'Linux',            desc: 'Server operatsion tizimi' },
-  { slug: 'docker-devops',    title: 'Docker',           desc: 'Konteynerizatsiya texnologiyasi' },
-  { slug: 'vuejs',            title: 'Vue.js',           desc: 'Progressive JS framework' },
-  { slug: 'typescript',       title: 'TypeScript',       desc: "Kuchli JavaScript versiyasi" },
-  { slug: 'mongodb',          title: 'MongoDB',          desc: "NoSQL ma'lumotlar bazasi" },
-  { slug: 'flutter-dart',     title: 'Flutter',          desc: 'Mobil ilovalar yaratish' },
-  { slug: 'machine-learning', title: 'Machine Learning', desc: "Sun'iy intellekt asoslari" },
-  { slug: 'cybersecurity',    title: 'Cybersecurity',    desc: 'Axborot xavfsizligi' },
+  { slug: 'html-css', title: 'HTML & CSS', desc: 'Web sahifalar asosi' },
+  { slug: 'javascript', title: 'JavaScript', desc: 'Interaktiv web ilovalar' },
+  { slug: 'python', title: 'Python', desc: 'Mashhur dasturlash tili' },
+  { slug: 'reactjs', title: 'React.js', desc: 'Zamonaviy frontend' },
+  { slug: 'nodejs', title: 'Node.js', desc: 'Backend dasturlash' },
+  { slug: 'sql-postgresql', title: 'PostgreSQL', desc: 'SQL database' },
+  { slug: 'git-github', title: 'Git & GitHub', desc: 'Versiya boshqaruvi' },
+  { slug: 'linux-terminal', title: 'Linux', desc: 'Server tizimi' },
+  { slug: 'docker-devops', title: 'Docker', desc: 'Konteynerizatsiya' },
+  { slug: 'vuejs', title: 'Vue.js', desc: 'Progressive framework' },
+  { slug: 'typescript', title: 'TypeScript', desc: 'Kuchli JavaScript' },
+  { slug: 'mongodb', title: 'MongoDB', desc: 'NoSQL database' },
+  { slug: 'flutter-dart', title: 'Flutter', desc: 'Mobil ilovalar' },
+  { slug: 'machine-learning', title: 'Machine Learning', desc: 'AI asoslari' },
+  { slug: 'cybersecurity', title: 'Cybersecurity', desc: 'Axborot xavfsizligi' },
+]
+
+const PLANS = [
+  { name: 'Free', price: '0', dur: '3 kun', badge: 'free', color: '#6b7280',
+    features: ['3 ta kurs', 'Video darslar', 'Quiz testlar', 'AI (cheklangan)'],
+    no: ['Sertifikat', 'Mentor', 'Ish kafolati'] },
+  { name: 'Pro', price: '700,000', dur: '30 kun', badge: 'pro', popular: true, color: '#3b82f6',
+    features: ['Barcha kurslar', 'Video darslar', 'AI chat', 'Sertifikat'],
+    no: ['Mentor', 'Ish kafolati'] },
+  { name: 'Max', price: '1,500,000', dur: '30 kun', badge: 'max', color: '#8b5cf6',
+    features: ['Barcha kurslar', 'AI chat', 'Sertifikat', 'Mentor', 'Loyiha tekshiruvi'],
+    no: ['Ish kafolati'] },
+  { name: 'VIP', price: '3,000,000', dur: '30 kun', badge: 'vip', color: '#f59e0b',
+    features: ['Barcha kurslar', 'AI chat', 'Sertifikat', 'Mentor', 'Ish kafolati', 'CV tayyorlash', 'Intervyu'],
+    no: [] },
+]
+
+const FAQS = [
+  { q: "ITX platformasi kimlar uchun?", a: "ITX platformasi IT sohasini noldan o'rganmoqchi bo'lgan har qanday yoshdagi insonlar uchun. Dasturlash tajribasi talab qilinmaydi. Boshlang'ichdan ekspert darajasigacha o'rgatamiz." },
+  { q: "Kurslar qancha vaqt davom etadi?", a: "Har bir kurs 2-8 hafta davom etadi. O'z sur'atingizda o'rganishingiz mumkin, darslar 24/7 mavjud. Videolarni istalgan vaqt ko'rishingiz mumkin." },
+  { q: "Sertifikat beriladi?", a: "Ha, Pro, Max va VIP rejalarida kursni muvaffaqiyatli tugatgandan so'ng rasmiy sertifikat beriladi. Sertifikat LinkedIn profilingizga qo'shishingiz mumkin." },
+  { q: "To'lov qanday amalga oshiriladi?", a: "Karta orqali to'lov qilib, chekni yuborasiz. 24 soat ichida admin tasdiqlaydi va tarifingiz faollashadi. Savol bo'lsa +998 90 637 37 54 ga murojaat qiling." },
+  { q: "Face ID tizimi nima?", a: "Quiz paytida kamera orqali yuzingiz kuzatiladi. Bu akademik halollikni ta'minlash uchun. Bosh yoki ko'z harakati 15% dan oshsa ogohlantirish beriladi. 3 ta ogohlantirish bo'lsa quiz qayta boshlanadi." },
+  { q: "Mentor bilan qanday ishlash mumkin?", a: "Max va VIP rejalarda shaxsiy mentor tayinlanadi. Telegram orqali savol berishingiz, loyihalaringizni tekshirtirishingiz mumkin. Mentor hafta davomida javob beradi." },
+  { q: "Bepul sinov davri bormi?", a: "Ha! Ro'yxatdan o'tgandan so'ng 3 kun bepul sinov davri beriladi. 3 ta kursga kirish imkoniyati mavjud. Karta ma'lumotlari talab qilinmaydi." },
+  { q: "Ish kafolati qanday ishlaydi?", a: "VIP rejada kurslarni tugatib, loyihalarni topshirgandan so'ng ish topishda yordam beramiz. Intervyuga tayyorlaymiz va IT kompaniyalarga tavsiya qilamiz." },
+]
+
+const TESTIMONIALS = [
+  { name: 'Aziz Karimov', role: 'Frontend Developer @ Uzum', text: "ITX orqali 6 oyda JavaScript va React ni o'rgandim. Hozir Uzum kompaniyasida ishlayapman! Kurslar juda tushunarli va amaliy.", rating: 5, color: '#3b82f6' },
+  { name: 'Malika Yusupova', role: 'Data Scientist @ Beeline', text: "Python kursini tugatib, Data Science sohasiga kirdim. Mentor yordami juda foydali bo'ldi! Tavsiya qilaman.", rating: 5, color: '#8b5cf6' },
+  { name: 'Jasur Toshmatov', role: 'Backend Developer @ Click', text: "VIP paket orqali ish kafolati oldim. 3 oy ichida intervyudan o'tib, yaxshi maosh bilan ishga kirdim!", rating: 5, color: '#06b6d4' },
+  { name: 'Dilnoza Rahimova', role: 'Full Stack Developer', text: "Node.js va React kurslarini birgalikda olib, full stack developer bo'ldim. ITX eng yaxshi platforma!", rating: 5, color: '#10b981' },
+  { name: 'Bobur Xasanov', role: 'DevOps Engineer @ Epam', text: "Docker va Linux kurslaridan keyin DevOps sohasiga kirdim. Kurslar professional darajada tayyorlangan.", rating: 5, color: '#f59e0b' },
+  { name: 'Sarvar Mirzayev', role: 'Mobile Developer', text: "Flutter kursini tugatib, App Store va Google Play da ilovam bor. ITX ning amaliy yondashuvi ajoyib!", rating: 5, color: '#ef4444' },
 ]
 
 function Counter({ target, decimal }) {
   const [val, setVal] = useState(0)
   useEffect(() => {
     let cur = 0
-    const inc = target / 60
+    const inc = target / 80
     const t = setInterval(() => {
       cur += inc
       if (cur >= target) { cur = target; clearInterval(t) }
       setVal(decimal ? (cur / 10).toFixed(1) : Math.floor(cur).toLocaleString())
-    }, 30)
+    }, 20)
     return () => clearInterval(t)
   }, [target])
   return <span>{val}</span>
 }
 
-function CourseGrid() {
+function CourseSlider() {
+  const [idx, setIdx] = useState(0)
+  const total = COURSES.length
+  const visible = 5
+  const maxIdx = total - visible
+
+  useEffect(() => {
+    const t = setInterval(() => setIdx(i => i >= maxIdx ? 0 : i + 1), 4000)
+    return () => clearInterval(t)
+  }, [maxIdx])
+
+  const prev = () => setIdx(i => Math.max(0, i - 1))
+  const next = () => setIdx(i => Math.min(maxIdx, i + 1))
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }} className="courses-home-grid">
-      {COURSES.map((c, i) => {
-        const logo = getCourseLogo(c.slug)
-        return (
-          <div key={i} style={{
-            background: 'var(--card)', border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-lg)', padding: '1.2rem',
-            textAlign: 'center', transition: 'all 0.3s', cursor: 'pointer',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = logo.color; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${logo.color}30` }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}
-          >
-            <div style={{ width: 52, height: 52, borderRadius: 12, background: logo.bg, border: `1px solid ${logo.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.8rem' }}>
-              {logo.svg}
-            </div>
-            <div style={{ fontWeight: 700, fontSize: '0.82rem', marginBottom: '0.25rem' }}>{c.title}</div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>{c.desc}</div>
-          </div>
-        )
-      })}
+    <div style={{ position: 'relative', padding: '0 2.5rem' }}>
+      <div style={{ overflow: 'hidden' }}>
+        <div style={{
+          display: 'flex', gap: '1rem',
+          transform: `translateX(calc(-${idx * (100 / visible)}% - ${idx * 16 / visible}px))`,
+          transition: 'transform 0.5s cubic-bezier(.4,0,.2,1)',
+          width: `${(total / visible) * 100}%`
+        }}>
+          {COURSES.map((c, i) => {
+            const logo = getCourseLogo(c.slug)
+            return (
+              <div key={i} style={{
+                flex: `0 0 calc(${100 / total}% - ${(total - 1) * 16 / total}px)`,
+                background: '#fff', border: '1.5px solid #e5e7eb',
+                borderRadius: 16, padding: '1.4rem 1rem',
+                textAlign: 'center', transition: 'all 0.3s', cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.05)', minWidth: 0
+              }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = logo.color; e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = `0 12px 32px ${logo.color}22` }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)' }}
+              >
+                <div style={{ width: 56, height: 56, borderRadius: 14, background: logo.bg, border: `1.5px solid ${logo.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.8rem' }}>
+                  {logo.svg}
+                </div>
+                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#111827', marginBottom: '0.25rem' }}>{c.title}</div>
+                <div style={{ fontSize: '0.72rem', color: '#9ca3af' }}>{c.desc}</div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+      <button onClick={prev} disabled={idx === 0} style={{ position: 'absolute', left: 0, top: '45%', transform: 'translateY(-50%)', width: 38, height: 38, borderRadius: '50%', background: '#fff', border: '1.5px solid #e5e7eb', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', transition: 'all 0.2s', opacity: idx === 0 ? 0.4 : 1 }}>
+        <ChevronLeft size={16} />
+      </button>
+      <button onClick={next} disabled={idx >= maxIdx} style={{ position: 'absolute', right: 0, top: '45%', transform: 'translateY(-50%)', width: 38, height: 38, borderRadius: '50%', background: '#fff', border: '1.5px solid #e5e7eb', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', transition: 'all 0.2s', opacity: idx >= maxIdx ? 0.4 : 1 }}>
+        <ChevronRight size={16} />
+      </button>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '0.4rem', marginTop: '1.5rem' }}>
+        {Array.from({ length: maxIdx + 1 }).map((_, i) => (
+          <button key={i} onClick={() => setIdx(i)} style={{ width: i === idx ? 24 : 8, height: 8, borderRadius: 4, background: i === idx ? '#3b82f6' : '#d1d5db', border: 'none', cursor: 'pointer', transition: 'all 0.3s', padding: 0 }} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function FAQItem({ q, a }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div style={{ background: '#fff', border: `1.5px solid ${open ? '#3b82f6' : '#e5e7eb'}`, borderRadius: 14, overflow: 'hidden', transition: 'all 0.3s', boxShadow: open ? '0 4px 20px rgba(59,130,246,0.1)' : '0 1px 4px rgba(0,0,0,0.04)' }}>
+      <button onClick={() => setOpen(o => !o)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.1rem 1.4rem', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', gap: '1rem' }}>
+        <span style={{ fontWeight: 600, fontSize: '0.95rem', color: '#111827' }}>{q}</span>
+        <span style={{ flexShrink: 0, color: open ? '#3b82f6' : '#9ca3af', display: 'block', transition: 'transform 0.3s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+          <ChevronDown size={18} />
+        </span>
+      </button>
+      {open && (
+        <div style={{ padding: '0 1.4rem 1.2rem', fontSize: '0.88rem', color: '#6b7280', lineHeight: 1.7, borderTop: '1px solid #f3f4f6' }}>
+          {a}
+        </div>
+      )}
     </div>
   )
 }
@@ -72,294 +162,386 @@ function CourseGrid() {
 export default function Home() {
   const { user } = useAuthStore()
   const [stats, setStats] = useState({ total_users: 0, total_courses: 15, total_videos: 0, rating: 4.9 })
+  const [tIdx, setTIdx] = useState(0)
 
   useEffect(() => {
     api.get('/stats').then(r => setStats(r.data)).catch(() => {})
+    const t = setInterval(() => setTIdx(i => (i + 1) % TESTIMONIALS.length), 5000)
+    return () => clearInterval(t)
   }, [])
 
-  return (
-    <div style={{ paddingTop: 64 }}>
+  const visibleT = [
+    TESTIMONIALS[tIdx % TESTIMONIALS.length],
+    TESTIMONIALS[(tIdx + 1) % TESTIMONIALS.length],
+    TESTIMONIALS[(tIdx + 2) % TESTIMONIALS.length],
+  ]
 
-      {/* HERO */}
-      <section style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '4rem 0', background: 'radial-gradient(ellipse at 20% 50%,rgba(99,102,241,.12) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(139,92,246,.08) 0%,transparent 50%)' }}>
+  return (
+    <div style={{ background: '#f8fafc', minHeight: '100vh', paddingTop: 64 }}>
+
+      {/* ===== HERO ===== */}
+      <section style={{ minHeight: '92vh', display: 'flex', alignItems: 'center', padding: '5rem 0 4rem', background: 'linear-gradient(135deg,#eff6ff 0%,#f5f3ff 50%,#ecfeff 100%)' }}>
         <div className="container">
-          <div className="hero-grid">
+          <div className="h-hero-grid">
             <div className="fade-up">
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '.5rem', background: 'rgba(99,102,241,.15)', border: '1px solid rgba(99,102,241,.3)', color: 'var(--primary)', padding: '.4rem 1rem', borderRadius: '50px', fontSize: '.85rem', fontWeight: 600, marginBottom: '1.5rem' }}>
-                <TrendingUp size={14} /> O'zbekistondagi #1 IT Platforma
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '.5rem', background: 'rgba(59,130,246,.1)', border: '1px solid rgba(59,130,246,.25)', color: '#3b82f6', padding: '.4rem 1rem', borderRadius: '50px', fontSize: '.82rem', fontWeight: 600, marginBottom: '1.5rem' }}>
+                <TrendingUp size={13} /> O'zbekistondagi #1 IT Platforma
               </div>
-              <h1 style={{ fontSize: '3.2rem', fontWeight: 900, lineHeight: 1.15, marginBottom: '1.2rem' }}>
-                IT sohasini <span className="gradient-text">professional</span> darajada o'rganing
+              <h1 style={{ fontSize: '3.4rem', fontWeight: 900, lineHeight: 1.12, marginBottom: '1.2rem', color: '#111827' }}>
+                IT sohasini <span style={{ background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>professional</span><br />darajada o'rganing
               </h1>
-              <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', marginBottom: '2rem', lineHeight: 1.7 }}>
-                15+ kurs, 300+ video dars, real loyihalar va sertifikatlar bilan IT karyerangizni boshlang.
+              <p style={{ fontSize: '1.1rem', color: '#6b7280', marginBottom: '2rem', lineHeight: 1.7, maxWidth: 520 }}>
+                15+ kurs, 300+ video dars, AI yordamchi, Face ID nazorat tizimi va sertifikatlar bilan IT karyerangizni boshlang.
               </p>
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
                 {user
-                  ? <Link to="/dashboard" className="btn btn-primary btn-lg">Dashboard <ArrowRight size={18} /></Link>
-                  : <Link to="/register" className="btn btn-primary btn-lg">Bepul boshlash <ArrowRight size={18} /></Link>
+                  ? <Link to="/courses" className="h-btn-primary">Kurslarni ko'rish <ArrowRight size={18} /></Link>
+                  : <Link to="/register" className="h-btn-primary">Bepul boshlash <ArrowRight size={18} /></Link>
                 }
-                <Link to="/pricing" className="btn btn-outline btn-lg">Narxlar</Link>
+                <Link to="/pricing" className="h-btn-outline">Narxlar</Link>
               </div>
-              <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-                {['3 kun bepul sinov', 'Sertifikat beriladi', 'Mentor yordami'].map(t => (
-                  <span key={t} style={{ display: 'flex', alignItems: 'center', gap: '.4rem', fontSize: '.85rem', color: 'var(--text-muted)' }}>
-                    <CheckCircle size={14} color="#22c55e" /> {t}
-                  </span>
+              <div style={{ display: 'flex', gap: '2.5rem', flexWrap: 'wrap' }}>
+                {[
+                  { val: stats.total_users || 1250, label: "O'quvchilar", suffix: '+' },
+                  { val: 15, label: 'Kurslar', suffix: '+' },
+                  { val: stats.total_videos || 300, label: 'Video darslar', suffix: '+' },
+                ].map((s, i) => (
+                  <div key={i}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#111827' }}>
+                      <Counter target={s.val} />{s.suffix}
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: '#9ca3af' }}>{s.label}</div>
+                  </div>
                 ))}
               </div>
             </div>
-            {/* Hero Visual - Animated */}
-            <div className="fade-up hero-visual-wrap" style={{ animationDelay: '.15s' }}>
-              <div className="hero-visual">
-                {/* Outer glow rings */}
-                <div className="hero-ring hero-ring-1" />
-                <div className="hero-ring hero-ring-2" />
-                <div className="hero-ring hero-ring-3" />
-
-                {/* Center card */}
-                <div className="hero-center-card">
-                  <div className="hero-center-icon">
-                    <GraduationCap size={40} color="#fff" />
-                  </div>
-                  <div className="hero-center-text">ITX</div>
-                  <div className="hero-center-sub" style={{textAlign:'center',letterSpacing:'0.5px'}}>ITX IT PLATFORMA</div>
+            {/* Hero visual */}
+            <div className="fade-up h-hero-visual" style={{ animationDelay: '.1s' }}>
+              <div style={{ position: 'relative', width: 400, height: 400, margin: '0 auto' }}>
+                <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '1.5px solid rgba(59,130,246,0.15)', animation: 'hRing 4s ease-in-out infinite' }} />
+                <div style={{ position: 'absolute', inset: 30, borderRadius: '50%', border: '1.5px solid rgba(139,92,246,0.12)', animation: 'hRing 4s ease-in-out infinite 1s' }} />
+                <div style={{ position: 'absolute', inset: 60, borderRadius: '50%', border: '1.5px solid rgba(6,182,212,0.1)', animation: 'hRing 4s ease-in-out infinite 2s' }} />
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 130, height: 130, borderRadius: 32, background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 20px 60px rgba(59,130,246,0.35)', animation: 'hFloat 4s ease-in-out infinite', zIndex: 10 }}>
+                  <GraduationCap size={42} color="#fff" />
+                  <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#fff', marginTop: 4 }}>ITX</div>
+                  <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.8)', letterSpacing: 1 }}>IT PLATFORMA</div>
                 </div>
-
-                {/* Orbiting tech icons */}
                 {[
-                  { slug: 'html-css',   angle: 0,   label: 'HTML' },
-                  { slug: 'javascript', angle: 45,  label: 'JS' },
-                  { slug: 'python',     angle: 90,  label: 'Python' },
-                  { slug: 'reactjs',    angle: 135, label: 'React' },
-                  { slug: 'nodejs',     angle: 180, label: 'Node' },
-                  { slug: 'typescript', angle: 225, label: 'TS' },
-                  { slug: 'docker-devops', angle: 270, label: 'Docker' },
-                  { slug: 'mongodb',    angle: 315, label: 'Mongo' },
+                  { slug: 'html-css', angle: 0 }, { slug: 'javascript', angle: 51 },
+                  { slug: 'python', angle: 102 }, { slug: 'reactjs', angle: 153 },
+                  { slug: 'nodejs', angle: 204 }, { slug: 'typescript', angle: 255 },
+                  { slug: 'docker-devops', angle: 306 },
                 ].map((item, i) => {
-                  const logo = getCourseLogo(item.slug, 24)
+                  const logo = getCourseLogo(item.slug, 22)
                   const rad = (item.angle * Math.PI) / 180
-                  const r = 130
+                  const r = 150
                   const x = Math.cos(rad) * r
                   const y = Math.sin(rad) * r
                   return (
-                    <div key={i} className="orbit-icon" style={{
-                      left: `calc(50% + ${x}px - 24px)`,
-                      top: `calc(50% + ${y}px - 24px)`,
-                      animationDelay: `${i * 0.2}s`
-                    }}>
-                      <div style={{ width: 48, height: 48, borderRadius: 12, background: logo.bg, border: `1.5px solid ${logo.color}50`, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
-                        {logo.svg}
-                      </div>
+                    <div key={i} style={{ position: 'absolute', left: `calc(50% + ${x}px - 22px)`, top: `calc(50% + ${y}px - 22px)`, width: 44, height: 44, borderRadius: 12, background: '#fff', border: `1.5px solid ${logo.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', animation: 'hFloat 4s ease-in-out infinite', animationDelay: `${i * 0.3}s`, zIndex: 8 }}>
+                      {logo.svg}
                     </div>
                   )
                 })}
-
-                {/* Floating stat cards */}
-                <div className="hero-stat-card hero-stat-1">
-                  <div style={{ fontSize: '1.4rem', fontWeight: 900, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>1,250+</div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>O'quvchilar</div>
+                <div style={{ position: 'absolute', bottom: 10, left: -20, background: '#fff', borderRadius: 14, padding: '0.7rem 1rem', boxShadow: '0 8px 32px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', animation: 'hFloat 4s ease-in-out infinite 0.5s', zIndex: 15 }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#3b82f6' }}>1,250+</div>
+                  <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>O'quvchilar</div>
                 </div>
-                <div className="hero-stat-card hero-stat-2">
-                  <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#22c55e' }}>15+</div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>Kurslar</div>
+                <div style={{ position: 'absolute', top: 20, right: -30, background: '#fff', borderRadius: 14, padding: '0.7rem 1rem', boxShadow: '0 8px 32px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', animation: 'hFloat 4s ease-in-out infinite 1.5s', zIndex: 15 }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#10b981' }}>15+</div>
+                  <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>Kurslar</div>
                 </div>
-                <div className="hero-stat-card hero-stat-3">
-                  <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#f59e0b' }}>4.9★</div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>Reyting</div>
+                <div style={{ position: 'absolute', bottom: 60, right: -40, background: '#fff', borderRadius: 14, padding: '0.7rem 1rem', boxShadow: '0 8px 32px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', animation: 'hFloat 4s ease-in-out infinite 2.5s', zIndex: 15 }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f59e0b' }}>4.9★</div>
+                  <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>Reyting</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </section>
-
-      {/* STATS */}
-      <section style={{ padding: '4rem 0', background: 'var(--bg2)' }}>
+      {/* ===== STATS ===== */}
+      <section style={{ padding: '4rem 0', background: '#fff', borderBottom: '1px solid #f3f4f6' }}>
         <div className="container">
-          <div className="stats-grid-4">
+          <div className="h-stats-grid">
             {[
-              { Icon: Users, val: stats.total_users, label: "O'quvchilar", color: '#6366f1' },
-              { Icon: BookOpen, val: stats.total_courses, label: 'Kurslar', color: '#8b5cf6' },
-              { Icon: Video, val: stats.total_videos, label: 'Video darslar', color: '#06b6d4' },
-              { Icon: Star, val: 49, label: 'Reyting', decimal: true, color: '#f59e0b' },
+              { Icon: Users, val: stats.total_users || 1250, label: "O'quvchilar", color: '#3b82f6', suffix: '+' },
+              { Icon: BookOpen, val: 15, label: 'Kurslar', color: '#8b5cf6', suffix: '+' },
+              { Icon: Video, val: stats.total_videos || 300, label: 'Video darslar', color: '#06b6d4', suffix: '+' },
+              { Icon: Star, val: 49, label: 'Reyting', color: '#f59e0b', decimal: true, suffix: '' },
+              { Icon: Award, val: 500, label: 'Sertifikatlar', color: '#10b981', suffix: '+' },
             ].map((s, i) => (
-              <div key={i} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2rem', textAlign: 'center', transition: 'transform .3s' }}
-                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
-                onMouseLeave={e => e.currentTarget.style.transform = ''}
-              >
-                <div style={{ width: 56, height: 56, borderRadius: 14, background: `${s.color}20`, border: `1px solid ${s.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
-                  <s.Icon size={24} color={s.color} />
+              <div key={i} className="h-stat-card">
+                <div style={{ width: 52, height: 52, borderRadius: 14, background: s.color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.8rem' }}>
+                  <s.Icon size={22} color={s.color} />
                 </div>
-                <div style={{ fontSize: '2.2rem', fontWeight: 800 }} className="gradient-text"><Counter target={s.val} decimal={s.decimal} /></div>
-                <div style={{ color: 'var(--text-muted)', fontSize: '.9rem', marginTop: '.3rem' }}>{s.label}</div>
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: '#111827' }}>
+                  <Counter target={s.val} decimal={s.decimal} />{s.suffix}
+                </div>
+                <div style={{ color: '#9ca3af', fontSize: '0.85rem', marginTop: '0.2rem' }}>{s.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* COURSES SLIDER */}
-      <section style={{ padding: '5rem 0' }}>
+      {/* ===== KURSLAR ===== */}
+      <section style={{ padding: '5rem 0', background: '#f8fafc' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '.8rem' }}>Bizning <span className="gradient-text">Kurslar</span></h2>
-            <p style={{ color: 'var(--text-muted)' }}>Zamonaviy IT texnologiyalarini o'rganing</p>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '.4rem', background: 'rgba(59,130,246,.08)', color: '#3b82f6', padding: '.3rem .9rem', borderRadius: '50px', fontSize: '.8rem', fontWeight: 600, marginBottom: '1rem' }}>
+              <BookOpen size={13} /> 15 ta professional kurs
+            </div>
+            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#111827', marginBottom: '.8rem' }}>Bizning <span style={{ background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Kurslar</span></h2>
+            <p style={{ color: '#6b7280', maxWidth: 500, margin: '0 auto' }}>Zamonaviy IT texnologiyalarini amaliy loyihalar orqali o'rganing</p>
           </div>
-          <div>
-            <CourseGrid />
-          </div>
+          <CourseSlider />
           <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
-            <Link to={user ? '/courses' : '/register'} className="btn btn-primary btn-lg">
-              {user ? "Kurslarni ko'rish" : 'Bepul boshlash'} <ArrowRight size={18} />
+            <Link to={user ? '/courses' : '/register'} className="h-btn-primary">
+              {user ? "Barcha kurslarni ko'rish" : 'Bepul boshlash'} <ArrowRight size={18} />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* NIMA O'RGATAMIZ */}
-      <section style={{ padding: '5rem 0', background: 'var(--bg2)' }}>
+      {/* ===== NIMA O'RGATAMIZ ===== */}
+      <section style={{ padding: '5rem 0', background: '#fff' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '.8rem' }}>Nima <span className="gradient-text">o'rgatamiz?</span></h2>
-            <p style={{ color: 'var(--text-muted)', maxWidth: 600, margin: '0 auto' }}>ITX platformasida siz zamonaviy IT texnologiyalarini amaliy loyihalar orqali o'rganasiz</p>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '.4rem', background: 'rgba(139,92,246,.08)', color: '#8b5cf6', padding: '.3rem .9rem', borderRadius: '50px', fontSize: '.8rem', fontWeight: 600, marginBottom: '1rem' }}>
+              <Layers size={13} /> Yo'nalishlar
+            </div>
+            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#111827', marginBottom: '.8rem' }}>Nima <span style={{ background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>o'rgatamiz?</span></h2>
+            <p style={{ color: '#6b7280', maxWidth: 500, margin: '0 auto' }}>ITX platformasida siz zamonaviy IT texnologiyalarini amaliy loyihalar orqali o'rganasiz</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.5rem' }} className="features-grid-resp">
+          <div className="h-features-grid">
             {[
-              { icon: '🌐', title: 'Web Dasturlash', desc: 'HTML, CSS, JavaScript, React, Vue.js, Node.js — zamonaviy web ilovalar yaratishni o\'rganing. Frontend va backend texnologiyalarini birgalikda o\'zlashtirasiz.' },
-              { icon: '🐍', title: 'Backend & Python', desc: 'Python, Django, FastAPI, PostgreSQL, MongoDB — server tomonida dasturlash va ma\'lumotlar bazasi bilan ishlashni o\'rganing.' },
-              { icon: '📱', title: 'Mobil Ilovalar', desc: 'Flutter & Dart bilan iOS va Android uchun bir vaqtda mobil ilovalar yarating. Google Play va App Store ga chiqaring.' },
-              { icon: '🤖', title: 'AI & Machine Learning', desc: 'Sun\'iy intellekt, neural tarmoqlar, Python bilan ML modellarini yarating. TensorFlow va scikit-learn kutubxonalarini o\'rganing.' },
-              { icon: '🔒', title: 'Cybersecurity', desc: 'Axborot xavfsizligi asoslari, etik hacking, penetration testing va himoya usullarini professional darajada o\'rganing.' },
-              { icon: '🐳', title: 'DevOps & Cloud', desc: 'Docker, Kubernetes, CI/CD, Linux, Git — zamonaviy DevOps amaliyotlari va cloud texnologiyalarini o\'rganing.' },
+              { Icon: Globe, color: '#3b82f6', bg: '#eff6ff', title: 'Web Dasturlash', desc: 'HTML, CSS, JavaScript, React, Vue.js, Node.js � zamonaviy web ilovalar yaratishni o\'rganing. Frontend va backend texnologiyalarini birgalikda o\'zlashtirasiz.' },
+              { Icon: Code2, color: '#8b5cf6', bg: '#f5f3ff', title: 'Backend & Python', desc: 'Python, Django, FastAPI, PostgreSQL, MongoDB � server tomonida dasturlash va ma\'lumotlar bazasi bilan ishlashni o\'rganing.' },
+              { Icon: Smartphone, color: '#06b6d4', bg: '#ecfeff', title: 'Mobil Ilovalar', desc: 'Flutter & Dart bilan iOS va Android uchun bir vaqtda mobil ilovalar yarating. Google Play va App Store ga chiqaring.' },
+              { Icon: Brain, color: '#10b981', bg: '#f0fdf4', title: 'AI & Machine Learning', desc: 'Sun\'iy intellekt, neural tarmoqlar, Python bilan ML modellarini yarating. TensorFlow va scikit-learn kutubxonalarini o\'rganing.' },
+              { Icon: Lock, color: '#ef4444', bg: '#fef2f2', title: 'Cybersecurity', desc: 'Axborot xavfsizligi asoslari, etik hacking, penetration testing va himoya usullarini professional darajada o\'rganing.' },
+              { Icon: Layers, color: '#f59e0b', bg: '#fffbeb', title: 'DevOps & Cloud', desc: 'Docker, Kubernetes, CI/CD, Linux, Git � zamonaviy DevOps amaliyotlari va cloud texnologiyalarini o\'rganing.' },
             ].map((f, i) => (
-              <div key={i} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2rem', transition: 'all 0.3s' }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = 'var(--primary)' }}
-                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.borderColor = 'var(--border)' }}
+              <div key={i} className="h-feature-card"
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = `0 16px 48px ${f.color}18`; e.currentTarget.style.borderColor = f.color + '40' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; e.currentTarget.style.borderColor = '#e5e7eb' }}
               >
-                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>{f.icon}</div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.8rem' }}>{f.title}</h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.7 }}>{f.desc}</p>
+                <div style={{ width: 52, height: 52, borderRadius: 14, background: f.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.2rem' }}>
+                  <f.Icon size={24} color={f.color} />
+                </div>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', marginBottom: '0.7rem' }}>{f.title}</h3>
+                <p style={{ fontSize: '0.85rem', color: '#6b7280', lineHeight: 1.7 }}>{f.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* NARXLAR */}
-      <section style={{ padding: '5rem 0' }}>
+      {/* ===== IMKONIYATLAR ===== */}
+      <section style={{ padding: '5rem 0', background: 'linear-gradient(135deg,#eff6ff,#f5f3ff)' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '.8rem' }}>Tarif <span className="gradient-text">Rejalari</span></h2>
-            <p style={{ color: 'var(--text-muted)' }}>O'zingizga mos rejani tanlang va IT karyerangizni boshlang</p>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '.4rem', background: 'rgba(6,182,212,.08)', color: '#06b6d4', padding: '.3rem .9rem', borderRadius: '50px', fontSize: '.8rem', fontWeight: 600, marginBottom: '1rem' }}>
+              <Zap size={13} /> Platformaning kuchlari
+            </div>
+            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#111827', marginBottom: '.8rem' }}>Nima uchun <span style={{ background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>ITX?</span></h2>
+            <p style={{ color: '#6b7280', maxWidth: 500, margin: '0 auto' }}>Boshqa platformalardan farqli, ITX sizga real natija beradi</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1.5rem', alignItems: 'stretch' }} className="pricing-home-grid">
+          <div className="h-adv-grid">
             {[
-              { name: 'Free', price: '0', dur: '3 kun', badge: 'free',
-                features: ['3 ta kurs', 'Video darslar', 'Quiz testlar', 'AI (cheklangan)'],
-                no: ['Sertifikat', 'Mentor', 'Ish kafolati'] },
-              { name: 'Pro', price: '700,000', dur: '30 kun', badge: 'pro', popular: true,
-                features: ['Barcha kurslar', 'Video darslar', 'AI chat', 'Sertifikat'],
-                no: ['Mentor', 'Ish kafolati'] },
-              { name: 'Max', price: '1,500,000', dur: '30 kun', badge: 'max',
-                features: ['Barcha kurslar', 'AI chat', 'Sertifikat', 'Mentor', 'Loyiha tekshiruvi'],
-                no: ['Ish kafolati'] },
-              { name: 'VIP', price: '3,000,000', dur: '30 kun', badge: 'vip',
-                features: ['Barcha kurslar', 'AI chat', 'Sertifikat', 'Mentor', 'Ish kafolati', 'CV tayyorlash', 'Intervyu'],
-                no: [] },
-            ].map((p, i) => (
-              <div key={i} style={{
-                background: 'var(--card)',
-                border: `1px solid ${p.popular ? 'var(--primary)' : p.badge === 'vip' ? '#f59e0b' : 'var(--border)'}`,
-                borderRadius: 'var(--radius-lg)', padding: '2rem',
-                position: 'relative', transition: 'transform .3s',
-                boxShadow: p.popular ? '0 0 30px rgba(99,102,241,.2)' : 'none',
-                display: 'flex', flexDirection: 'column'
-              }}
-                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
+              { Icon: Shield, color: '#3b82f6', title: 'Face ID Nazorat', desc: 'Quiz paytida kamera orqali yuz va ko\'z harakati kuzatiladi. 15% dan oshsa ogohlantirish. Akademik halollik kafolatlangan.' },
+              { Icon: Brain, color: '#8b5cf6', title: 'AI Yordamchi', desc: 'Gemini AI asosida ishlaydi. Dars mavzusiga qarab 30 ta test savol avtomatik yaratadi. Savollaringizga darhol javob beradi.' },
+              { Icon: Award, color: '#10b981', title: 'Rasmiy Sertifikat', desc: 'Kursni tugatgandan so\'ng rasmiy sertifikat beriladi. LinkedIn va CV ga qo\'shishingiz mumkin. Ish beruvchilar tomonidan tan olinadi.' },
+              { Icon: Target, color: '#f59e0b', title: 'Amaliy Loyihalar', desc: 'Har bir kursda real loyihalar mavjud. Portfolio yaratib, ish topishda foydalanasiz. Mentor loyihangizni tekshiradi.' },
+              { Icon: Clock, color: '#06b6d4', title: '24/7 Mavjud', desc: 'Darslar istalgan vaqt, istalgan joydan ko\'rish mumkin. Mobil qurilmada ham ishlaydi. O\'z sur\'atingizda o\'rganing.' },
+              { Icon: Users, color: '#ef4444', title: 'Mentor Yordami', desc: 'Max va VIP rejalarda shaxsiy mentor tayinlanadi. Telegram orqali savol bering. Hafta davomida javob olasiz.' },
+              { Icon: Globe, color: '#3b82f6', title: 'Ish Kafolati', desc: 'VIP rejada kurslarni tugatgandan so\'ng ish topishda yordam beramiz. IT kompaniyalarga tavsiya qilamiz.' },
+              { Icon: Zap, color: '#8b5cf6', title: 'Tez O\'rganish', desc: 'Qisqa va aniq video darslar. Har bir dars 10-20 daqiqa. Nazariya va amaliyot birgalikda. Tez natija ko\'rasiz.' },
+            ].map((a, i) => (
+              <div key={i} style={{ background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 16, padding: '1.5rem', transition: 'all 0.3s', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = a.color + '50'; e.currentTarget.style.boxShadow = `0 12px 32px ${a.color}15` }}
+                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)' }}
+              >
+                <div style={{ width: 46, height: 46, borderRadius: 12, background: a.color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+                  <a.Icon size={22} color={a.color} />
+                </div>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#111827', marginBottom: '0.5rem' }}>{a.title}</h3>
+                <p style={{ fontSize: '0.82rem', color: '#6b7280', lineHeight: 1.6 }}>{a.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== QANDAY ISHLAYDI ===== */}
+      <section style={{ padding: '5rem 0', background: '#fff' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '.4rem', background: 'rgba(16,185,129,.08)', color: '#10b981', padding: '.3rem .9rem', borderRadius: '50px', fontSize: '.8rem', fontWeight: 600, marginBottom: '1rem' }}>
+              <PlayCircle size={13} /> Jarayon
+            </div>
+            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#111827', marginBottom: '.8rem' }}>Qanday <span style={{ background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>ishlaydi?</span></h2>
+            <p style={{ color: '#6b7280', maxWidth: 500, margin: '0 auto' }}>4 ta oddiy qadam bilan IT karyerangizni boshlang</p>
+          </div>
+          <div className="h-steps-grid">
+            {[
+              { num: '01', color: '#3b82f6', title: "Ro'yxatdan o'ting", desc: "3 daqiqada ro'yxatdan o'ting. Email va telefon raqamingizni kiriting. 3 kun bepul sinov davri boshlanadi." },
+              { num: '02', color: '#8b5cf6', title: 'Kursni tanlang', desc: "15 ta kurs ichidan o'zingizga mos yo'nalishni tanlang. Har bir kurs haqida batafsil ma'lumot mavjud." },
+              { num: '03', color: '#06b6d4', title: 'O\'rganing va mashq qiling', desc: "Video darslarni ko'ring, quiz testlarini ishlang. AI yordamchi savollaringizga javob beradi. Amaliy loyihalar bajaring." },
+              { num: '04', color: '#10b981', title: 'Sertifikat oling', desc: "Kursni tugatib, sertifikat oling. Portfolio yarating. Ish topishda yordam oling. IT karyerangizni boshlang!" },
+            ].map((s, i) => (
+              <div key={i} style={{ textAlign: 'center', position: 'relative' }}>
+                {i < 3 && <div style={{ position: 'absolute', top: 28, left: '60%', width: '80%', height: 2, background: 'linear-gradient(90deg,' + s.color + '40,transparent)', zIndex: 0 }} className="h-step-line" />}
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'linear-gradient(135deg,' + s.color + ',' + s.color + 'cc)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.2rem', boxShadow: '0 8px 24px ' + s.color + '30', fontSize: '1.1rem', fontWeight: 800, color: '#fff' }}>
+                    {s.num}
+                  </div>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', marginBottom: '0.6rem' }}>{s.title}</h3>
+                  <p style={{ fontSize: '0.83rem', color: '#6b7280', lineHeight: 1.6 }}>{s.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== NARXLAR ===== */}
+      <section style={{ padding: '5rem 0', background: '#f8fafc' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '.4rem', background: 'rgba(245,158,11,.08)', color: '#f59e0b', padding: '.3rem .9rem', borderRadius: '50px', fontSize: '.8rem', fontWeight: 600, marginBottom: '1rem' }}>
+              <Award size={13} /> Tarif rejalari
+            </div>
+            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#111827', marginBottom: '.8rem' }}>Tarif <span style={{ background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Rejalari</span></h2>
+            <p style={{ color: '#6b7280' }}>O'zingizga mos rejani tanlang va IT karyerangizni boshlang</p>
+          </div>
+          <div className="h-pricing-grid">
+            {PLANS.map((p, i) => (
+              <div key={i} style={{ background: '#fff', border: `2px solid ${p.popular ? p.color : p.badge === 'vip' ? '#f59e0b' : '#e5e7eb'}`, borderRadius: 20, padding: '2rem', position: 'relative', transition: 'transform .3s', boxShadow: p.popular ? `0 0 40px ${p.color}20` : '0 2px 8px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column' }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-6px)'}
                 onMouseLeave={e => e.currentTarget.style.transform = ''}
               >
-                {p.popular && <div style={{ position: 'absolute', top: -1, right: '1.5rem', background: 'var(--gradient)', color: '#fff', fontSize: '.7rem', fontWeight: 700, padding: '.3rem .8rem', borderRadius: '0 0 8px 8px' }}>Mashhur</div>}
-                <span className={`badge-${p.badge}`}>{p.name}</span>
-                <div style={{ fontSize: '2rem', fontWeight: 800, margin: '.8rem 0 .2rem', background: 'var(--gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{p.price}</div>
-                <div style={{ fontSize: '.8rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>so'm / {p.dur}</div>
+                {p.popular && <div style={{ position: 'absolute', top: -1, right: '1.5rem', background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', color: '#fff', fontSize: '.7rem', fontWeight: 700, padding: '.3rem .8rem', borderRadius: '0 0 10px 10px' }}>Mashhur</div>}
+                <span className={'badge-' + p.badge}>{p.name}</span>
+                <div style={{ fontSize: '2.2rem', fontWeight: 900, margin: '.8rem 0 .2rem', color: p.color }}>{p.price}</div>
+                <div style={{ fontSize: '.8rem', color: '#9ca3af', marginBottom: '1.5rem' }}>so'm / {p.dur}</div>
                 <ul style={{ listStyle: 'none', marginBottom: '1.5rem', flex: 1 }}>
-                  {p.features.map(f => <li key={f} style={{ display: 'flex', alignItems: 'center', gap: '.5rem', padding: '.3rem 0', fontSize: '.85rem' }}><CheckCircle size={14} color="#22c55e" /> {f}</li>)}
-                  {p.no.map(f => <li key={f} style={{ display: 'flex', alignItems: 'center', gap: '.5rem', padding: '.3rem 0', fontSize: '.85rem', color: 'var(--text-muted)' }}><span style={{color:'#ef4444',fontSize:'1rem'}}>✕</span> {f}</li>)}
+                  {p.features.map(f => <li key={f} style={{ display: 'flex', alignItems: 'center', gap: '.5rem', padding: '.3rem 0', fontSize: '.85rem', color: '#374151' }}><CheckCircle size={14} color="#10b981" /> {f}</li>)}
+                  {p.no.map(f => <li key={f} style={{ display: 'flex', alignItems: 'center', gap: '.5rem', padding: '.3rem 0', fontSize: '.85rem', color: '#9ca3af' }}><XCircle size={14} color="#d1d5db" /> {f}</li>)}
                 </ul>
-                <Link to="/pricing" className={`btn ${p.popular || p.badge === 'vip' ? 'btn-primary' : 'btn-outline'} btn-block`} style={{ justifyContent: 'center', marginTop: 'auto' }}>Tanlash</Link>
+                <Link to="/pricing" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '.5rem', padding: '.8rem', borderRadius: 12, fontWeight: 700, fontSize: '.9rem', textDecoration: 'none', marginTop: 'auto', background: p.popular || p.badge === 'vip' ? `linear-gradient(135deg,${p.color},${p.color}cc)` : 'transparent', color: p.popular || p.badge === 'vip' ? '#fff' : p.color, border: `2px solid ${p.color}`, transition: 'all .2s' }}
+                  onMouseEnter={e => { if (!(p.popular || p.badge === 'vip')) { e.currentTarget.style.background = p.color; e.currentTarget.style.color = '#fff' } }}
+                  onMouseLeave={e => { if (!(p.popular || p.badge === 'vip')) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = p.color } }}
+                >Tanlash <ArrowRight size={16} /></Link>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section style={{ padding: '5rem 0', background: 'linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.1))', borderTop: '1px solid var(--border)' }}>
-        <div className="container" style={{ textAlign: 'center' }}>
-          <h2 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '1rem' }}>IT karyerangizni <span className="gradient-text">bugun boshlang!</span></h2>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', maxWidth: 500, margin: '0 auto 2rem' }}>3 kunlik bepul sinov davri bilan hech qanday xavf yo'q. Ro'yxatdan o'ting va darhol boshlang.</p>
-          <Link to={user ? '/courses' : '/register'} className="btn btn-primary btn-lg">
-            {user ? "Kurslarni ko'rish" : 'Bepul boshlash'} <ArrowRight size={18} />
-          </Link>
+      {/* ===== TESTIMONIALS ===== */}
+      <section style={{ padding: '5rem 0', background: '#fff' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#111827', marginBottom: '.8rem' }}>O'quvchilar <span style={{ background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>fikrlari</span></h2>
+            <p style={{ color: '#6b7280' }}>1,250+ o'quvchi ITX orqali IT karyerasini boshladi</p>
+          </div>
+          <div className="h-testimonials-grid">
+            {visibleT.map((t, i) => (
+              <div key={i} style={{ background: '#f8fafc', border: '1.5px solid #e5e7eb', borderRadius: 20, padding: '2rem', transition: 'all 0.3s', animation: 'fadeIn 0.5s ease' }}>
+                <div style={{ display: 'flex', gap: '0.2rem', marginBottom: '1rem' }}>
+                  {[...Array(t.rating)].map((_, j) => <Star key={j} size={14} fill="#f59e0b" color="#f59e0b" />)}
+                </div>
+                <p style={{ color: '#374151', fontSize: '0.9rem', lineHeight: 1.7, marginBottom: '1.5rem', fontStyle: 'italic' }}>"{t.text}"</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,' + t.color + ',' + t.color + 'cc)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#fff', fontSize: '1rem', flexShrink: 0 }}>{t.name[0]}</div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#111827' }}>{t.name}</div>
+                    <div style={{ fontSize: '0.78rem', color: '#9ca3af' }}>{t.role}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.4rem', marginTop: '1.5rem' }}>
+            {TESTIMONIALS.map((_, i) => (
+              <button key={i} onClick={() => setTIdx(i)} style={{ width: i === tIdx ? 24 : 8, height: 8, borderRadius: 4, background: i === tIdx ? '#3b82f6' : '#d1d5db', border: 'none', cursor: 'pointer', transition: 'all 0.3s', padding: 0 }} />
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer style={{ background: 'var(--bg2)', borderTop: '1px solid var(--border)', padding: '3rem 0 1.5rem' }}>
+      {/* ===== FAQ ===== */}
+      <section style={{ padding: '5rem 0', background: '#f8fafc' }}>
         <div className="container">
-          <div className="footer-grid-4">
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#111827', marginBottom: '.8rem' }}>Tez beriladigan <span style={{ background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>savollar</span></h2>
+            <p style={{ color: '#6b7280' }}>Eng ko'p beriladigan savollarga javoblar</p>
+          </div>
+          <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+            {FAQS.map((f, i) => <FAQItem key={i} q={f.q} a={f.a} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== CTA ===== */}
+      <section style={{ padding: '5rem 0', background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)' }}>
+        <div className="container" style={{ textAlign: 'center' }}>
+          <h2 style={{ fontSize: '2.4rem', fontWeight: 900, color: '#fff', marginBottom: '1rem' }}>IT karyerangizni bugun boshlang!</h2>
+          <p style={{ color: 'rgba(255,255,255,0.8)', marginBottom: '2rem', fontSize: '1.1rem' }}>3 kunlik bepul sinov davri bilan hech qanday xavf yo'q.</p>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link to={user ? '/courses' : '/register'} style={{ display: 'inline-flex', alignItems: 'center', gap: '.5rem', background: '#fff', color: '#3b82f6', padding: '.9rem 2rem', borderRadius: 12, fontWeight: 700, fontSize: '1rem', textDecoration: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', transition: 'all .2s' }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseLeave={e => e.currentTarget.style.transform = ''}
+            >
+              {user ? "Kurslarni ko'rish" : 'Bepul boshlash'} <ArrowRight size={18} />
+            </Link>
+            <Link to="/pricing" style={{ display: 'inline-flex', alignItems: 'center', gap: '.5rem', background: 'rgba(255,255,255,0.15)', color: '#fff', padding: '.9rem 2rem', borderRadius: 12, fontWeight: 700, fontSize: '1rem', textDecoration: 'none', border: '2px solid rgba(255,255,255,0.3)', transition: 'all .2s' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+            >Narxlar</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== FOOTER ===== */}
+      <footer style={{ background: '#111827', padding: '4rem 0 2rem' }}>
+        <div className="container">
+          <div className="h-footer-grid">
             <div>
-              <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '.6rem', fontSize: '1.3rem', fontWeight: 800, textDecoration: 'none', marginBottom: '1rem' }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '.6rem', textDecoration: 'none', marginBottom: '1rem' }}>
+                <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <GraduationCap size={20} color="#fff" />
                 </div>
-                <span className="gradient-text">ITX</span>
+                <span style={{ fontSize: '1.3rem', fontWeight: 900, background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>ITX</span>
               </Link>
-              <p style={{ color: 'var(--text-muted)', fontSize: '.85rem', lineHeight: 1.7, marginBottom: '1.5rem' }}>IT sohasini o'rganish uchun eng yaxshi platforma. Yaratuvchi: Valiyev Ulug'bek</p>
+              <p style={{ color: '#9ca3af', fontSize: '.85rem', lineHeight: 1.7, marginBottom: '1.5rem' }}>O'zbekistondagi #1 IT ta'lim platformasi. Yaratuvchi: Valiyev Ulug'bek</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '.6rem' }}>
-                <a href="https://t.me/valiyevv_01" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '.6rem', color: 'var(--text-muted)', fontSize: '.85rem', textDecoration: 'none', transition: 'color .2s' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-                >
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(0,136,204,.15)', border: '1px solid rgba(0,136,204,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <MessageCircle size={15} color="#0088cc" />
-                  </div>
-                  @valiyevv_01
+                <a href="https://t.me/valiyevv_01" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '.6rem', color: '#9ca3af', fontSize: '.85rem', textDecoration: 'none' }}>
+                  <MessageCircle size={15} color="#0088cc" /> @valiyevv_01
                 </a>
-                <a href="tel:+998906373754" style={{ display: 'flex', alignItems: 'center', gap: '.6rem', color: 'var(--text-muted)', fontSize: '.85rem', textDecoration: 'none', transition: 'color .2s' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-                >
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(34,197,94,.15)', border: '1px solid rgba(34,197,94,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Phone size={15} color="#22c55e" />
-                  </div>
-                  +998 90 637 37 54
+                <a href="tel:+998906373754" style={{ display: 'flex', alignItems: 'center', gap: '.6rem', color: '#9ca3af', fontSize: '.85rem', textDecoration: 'none' }}>
+                  <Phone size={15} color="#10b981" /> +998 90 637 37 54
                 </a>
-                <a href="mailto:thisvaliyev@gmail.com" style={{ display: 'flex', alignItems: 'center', gap: '.6rem', color: 'var(--text-muted)', fontSize: '.85rem', textDecoration: 'none', transition: 'color .2s' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-                >
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(239,68,68,.15)', border: '1px solid rgba(239,68,68,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Mail size={15} color="#ef4444" />
-                  </div>
-                  thisvaliyev@gmail.com
+                <a href="mailto:thisvaliyev@gmail.com" style={{ display: 'flex', alignItems: 'center', gap: '.6rem', color: '#9ca3af', fontSize: '.85rem', textDecoration: 'none' }}>
+                  <Mail size={15} color="#ef4444" /> thisvaliyev@gmail.com
                 </a>
               </div>
             </div>
             {[
-              { title: 'Kurslar', links: [['Barcha kurslar', '/courses'], ['HTML & CSS', '/courses'], ['JavaScript', '/courses'], ['React.js', '/courses'], ['Node.js', '/courses']] },
-              { title: 'Platforma', links: [['Narxlar', '/pricing'], ['Dashboard', '/dashboard'], ['Profil', '/profile'], ["Ro'yxatdan o'tish", '/register'], ['Kirish', '/login']] },
-              { title: 'Qo\'llab-quvvatlash', links: [['Telegram: @valiyevv_01', 'https://t.me/valiyevv_01'], ['Tel: +998906373754', 'tel:+998906373754'], ['Email: thisvaliyev@gmail.com', 'mailto:thisvaliyev@gmail.com']] },
+              { title: 'Kurslar', links: [['HTML & CSS', '/courses'], ['JavaScript', '/courses'], ['Python', '/courses'], ['React.js', '/courses'], ['Node.js', '/courses'], ['Barcha kurslar', '/courses']] },
+              { title: 'Platforma', links: [['Narxlar', '/pricing'], ['Kurslar', '/courses'], ['Profil', '/profile'], ["Ro'yxatdan o'tish", '/register'], ['Kirish', '/login']] },
+              { title: "Qo'llab-quvvatlash", links: [['Telegram', 'https://t.me/valiyevv_01'], ['+998 90 637 37 54', 'tel:+998906373754'], ['thisvaliyev@gmail.com', 'mailto:thisvaliyev@gmail.com']] },
             ].map(col => (
               <div key={col.title}>
-                <h4 style={{ fontWeight: 700, marginBottom: '1rem', fontSize: '.9rem' }}>{col.title}</h4>
+                <h4 style={{ fontWeight: 700, marginBottom: '1rem', fontSize: '.9rem', color: '#fff' }}>{col.title}</h4>
                 <ul style={{ listStyle: 'none' }}>
                   {col.links.map(([label, href]) => (
                     <li key={label} style={{ marginBottom: '.6rem' }}>
-                      <Link to={href} style={{ color: 'var(--text-muted)', fontSize: '.85rem', textDecoration: 'none', transition: 'color .2s' }}
-                        onMouseEnter={e => e.target.style.color = 'var(--text)'}
-                        onMouseLeave={e => e.target.style.color = 'var(--text-muted)'}
+                      <Link to={href} style={{ color: '#9ca3af', fontSize: '.85rem', textDecoration: 'none', transition: 'color .2s' }}
+                        onMouseEnter={e => e.target.style.color = '#fff'}
+                        onMouseLeave={e => e.target.style.color = '#9ca3af'}
                       >{label}</Link>
                     </li>
                   ))}
@@ -367,8 +549,8 @@ export default function Home() {
               </div>
             ))}
           </div>
-          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-muted)', fontSize: '.8rem', flexWrap: 'wrap', gap: '.5rem' }}>
-            <span>© {new Date().getFullYear()} ITX Platform. Barcha huquqlar himoyalangan.</span>
+          <div style={{ borderTop: '1px solid #1f2937', paddingTop: '1.5rem', marginTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#6b7280', fontSize: '.8rem', flexWrap: 'wrap', gap: '.5rem' }}>
+            <span>� {new Date().getFullYear()} ITX Platform. Barcha huquqlar himoyalangan.</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '.3rem' }}>
               Made with <Heart size={14} color="#ef4444" fill="#ef4444" /> by Valiyev Ulug'bek
             </span>
@@ -377,130 +559,61 @@ export default function Home() {
       </footer>
 
       <style>{`
-        /* ===== ANIMATIONS ===== */
-        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-        @keyframes floatStat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.03)}}
-        @keyframes orbitPulse{0%,100%{opacity:0.7;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
-        @keyframes ringPulse{0%{opacity:0.15;transform:scale(0.95)}50%{opacity:0.35;transform:scale(1)}100%{opacity:0.15;transform:scale(0.95)}}
-        @keyframes rotateSlow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-        @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-        @keyframes heroCardGlow{
-          0%,100%{box-shadow:0 0 40px rgba(99,102,241,0.6),0 0 80px rgba(99,102,241,0.3)}
-          50%{box-shadow:0 0 70px rgba(99,102,241,0.9),0 0 120px rgba(139,92,246,0.5)}
-        }
+        @keyframes hFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+        @keyframes hRing{0%,100%{opacity:0.15;transform:translate(-50%,-50%) scale(0.97)}50%{opacity:0.35;transform:translate(-50%,-50%) scale(1)}}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
-        /* ===== HERO VISUAL ===== */
-        .hero-visual-wrap{display:flex;align-items:center;justify-content:center}
-        .hero-visual{
-          position:relative;width:360px;height:360px;
-          flex-shrink:0;
-        }
-        .hero-ring{
-          position:absolute;border-radius:50%;border:1px solid rgba(99,102,241,0.25);
-          top:50%;left:50%;transform:translate(-50%,-50%);
-          animation:ringPulse 3s ease-in-out infinite;
-        }
-        .hero-ring-1{width:200px;height:200px;animation-delay:0s;border-color:rgba(99,102,241,0.3)}
-        .hero-ring-2{width:290px;height:290px;animation-delay:0.8s;border-color:rgba(139,92,246,0.2)}
-        .hero-ring-3{width:360px;height:360px;animation-delay:1.6s;border-color:rgba(99,102,241,0.12)}
+        /* Buttons */
+        .h-btn-primary{display:inline-flex;align-items:center;gap:.5rem;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;padding:.85rem 1.8rem;border-radius:12px;font-weight:700;font-size:.95rem;text-decoration:none;box-shadow:0 8px 24px rgba(59,130,246,0.3);transition:all .2s}
+        .h-btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(59,130,246,0.4)}
+        .h-btn-outline{display:inline-flex;align-items:center;gap:.5rem;background:transparent;color:#374151;padding:.85rem 1.8rem;border-radius:12px;font-weight:700;font-size:.95rem;text-decoration:none;border:2px solid #e5e7eb;transition:all .2s}
+        .h-btn-outline:hover{border-color:#3b82f6;color:#3b82f6;transform:translateY(-2px)}
 
-        .hero-center-card{
-          position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-          width:130px;height:130px;border-radius:32px;
-          background:linear-gradient(135deg,#6366f1,#8b5cf6);
-          display:flex;flex-direction:column;align-items:center;justify-content:center;
-          box-shadow:0 0 50px rgba(99,102,241,0.7),0 0 100px rgba(99,102,241,0.35);
-          animation:float 4s ease-in-out infinite, heroCardGlow 3s ease-in-out infinite;
-          z-index:10;cursor:pointer;
-        }
-        .hero-center-text{font-size:1.3rem;font-weight:900;color:#fff;line-height:1}
-        .hero-center-sub{font-size:0.6rem;color:rgba(255,255,255,0.7);margin-top:2px;letter-spacing:1px;text-transform:uppercase}
+        /* Layout */
+        .h-hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
+        .h-stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1.5rem}
+        .h-stat-card{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:16px;padding:1.8rem;text-align:center;transition:all .3s}
+        .h-stat-card:hover{transform:translateY(-4px);border-color:#3b82f6;box-shadow:0 12px 32px rgba(59,130,246,0.1)}
+        .h-features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+        .h-feature-card{background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;padding:2rem;transition:all .3s;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+        .h-adv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem}
+        .h-steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2rem}
+        .h-pricing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;align-items:stretch}
+        .h-testimonials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+        .h-footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:3rem;margin-bottom:2rem}
 
-        .orbit-icon{
-          position:absolute;z-index:8;
-          animation:orbitPulse 3s ease-in-out infinite;
-          transition:transform 0.3s;
-        }
-        .orbit-icon:hover{transform:scale(1.2)!important;z-index:20}
-
-        .hero-stat-card{
-          position:absolute;z-index:15;
-          background:rgba(15,15,26,0.92);
-          backdrop-filter:blur(16px);
-          border:1px solid rgba(99,102,241,0.25);
-          border-radius:14px;padding:0.7rem 1rem;
-          text-align:center;min-width:80px;
-          animation:floatStat 4s ease-in-out infinite;
-          box-shadow:0 8px 32px rgba(0,0,0,0.4);
-        }
-        .hero-stat-1{bottom:-10px;left:-20px;animation-delay:0s}
-        .hero-stat-2{top:10px;right:-30px;animation-delay:1.3s}
-        .hero-stat-3{bottom:40px;right:-40px;animation-delay:2.6s}
-
-        /* ===== LAYOUT ===== */
-        .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
-        .stats-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
-        .pricing-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;align-items:stretch}
-        .footer-grid-4{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:3rem;margin-bottom:2rem}
-        .testimonials-grid-resp{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
-        .courses-home-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem}
-        .features-grid-resp{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
-        .pricing-home-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
-
-        /* ===== RESPONSIVE ===== */
+        /* Responsive */
         @media(max-width:1200px){
-          .pricing-grid-4{grid-template-columns:repeat(2,1fr)}
-          .footer-grid-4{grid-template-columns:1fr 1fr;gap:2rem}
+          .h-adv-grid{grid-template-columns:repeat(3,1fr)}
+          .h-pricing-grid{grid-template-columns:repeat(2,1fr)}
+          .h-footer-grid{grid-template-columns:1fr 1fr;gap:2rem}
+          .h-stats-grid{grid-template-columns:repeat(3,1fr)}
         }
         @media(max-width:1024px){
-          .hero-grid{grid-template-columns:1fr;text-align:center;gap:3rem}
-          .hero-visual-wrap{justify-content:center}
-          .hero-grid>div:first-child>div[style*="inline-flex"]{margin:0 auto 1.5rem}
-          .hero-grid>div:first-child>div[style*="flex-wrap"]{justify-content:center}
-          .hero-grid>div:first-child>div[style*="gap:1.5rem"]{justify-content:center}
-          .stats-grid-4{grid-template-columns:repeat(2,1fr)}
-          .hero-visual{width:300px;height:300px}
-          .hero-ring-3{width:300px;height:300px}
-          .hero-ring-2{width:240px;height:240px}
-          .hero-ring-1{width:165px;height:165px}
-          .courses-home-grid{grid-template-columns:repeat(3,1fr)}
-          .pricing-home-grid{grid-template-columns:repeat(2,1fr)}
+          .h-hero-grid{grid-template-columns:1fr;text-align:center;gap:3rem}
+          .h-hero-visual{display:flex;justify-content:center}
+          .h-features-grid{grid-template-columns:repeat(2,1fr)}
+          .h-steps-grid{grid-template-columns:repeat(2,1fr)}
+          .h-step-line{display:none}
         }
         @media(max-width:768px){
-          .hero-grid h1{font-size:2.2rem!important}
-          .stats-grid-4{grid-template-columns:repeat(2,1fr);gap:1rem}
-          .pricing-grid-4{grid-template-columns:1fr}
-          .testimonials-grid-resp{grid-template-columns:1fr}
-          .footer-grid-4{grid-template-columns:1fr}
+          .h-hero-grid h1{font-size:2.2rem!important}
+          .h-stats-grid{grid-template-columns:repeat(2,1fr);gap:1rem}
+          .h-features-grid{grid-template-columns:1fr}
+          .h-adv-grid{grid-template-columns:repeat(2,1fr)}
+          .h-pricing-grid{grid-template-columns:1fr}
+          .h-testimonials-grid{grid-template-columns:1fr}
+          .h-footer-grid{grid-template-columns:1fr}
+          .h-steps-grid{grid-template-columns:1fr}
           section{padding:3rem 0!important}
-          .hero-visual{width:260px;height:260px}
-          .hero-ring-3{width:260px;height:260px}
-          .hero-ring-2{width:200px;height:200px}
-          .hero-ring-1{width:140px;height:140px}
-          .hero-center-card{width:90px;height:90px;border-radius:22px}
-          .hero-stat-1{bottom:-5px;left:-10px}
-          .hero-stat-2{top:5px;right:-15px}
-          .hero-stat-3{display:none}
-          .courses-home-grid{grid-template-columns:repeat(2,1fr)}
-          .features-grid-resp{grid-template-columns:1fr}
-          .pricing-home-grid{grid-template-columns:1fr}
         }
         @media(max-width:480px){
-          .stats-grid-4{grid-template-columns:1fr 1fr}
-          .hero-grid h1{font-size:1.9rem!important}
-          .hero-visual{width:220px;height:220px}
-          .hero-ring-3{width:220px;height:220px}
-          .hero-ring-2{width:170px;height:170px}
-          .hero-ring-1{width:120px;height:120px}
-          .hero-center-card{width:76px;height:76px;border-radius:18px}
-          .hero-stat-2{right:-5px}
-          .courses-home-grid{grid-template-columns:repeat(2,1fr)}
+          .h-stats-grid{grid-template-columns:1fr 1fr}
+          .h-adv-grid{grid-template-columns:1fr}
+          .h-hero-grid h1{font-size:1.9rem!important}
         }
       `}</style>
     </div>
   )
 }
-
-
