@@ -5,7 +5,7 @@ const db = require('../db')
 const { authMiddleware, adminMiddleware } = require('../middleware/auth')
 
 // Gemini AI ni ishga tushirish
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'AIzaSyAMtIm9Tawv24yhq4faNJOBwLOqegzM2ww')
 
 // AI yordamchi - faqat admin uchun
 router.post('/assist', adminMiddleware, async (req, res) => {
