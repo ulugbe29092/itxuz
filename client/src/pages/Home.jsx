@@ -221,10 +221,13 @@ export default function Home() {
                 <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '1.5px solid rgba(59,130,246,0.15)', animation: 'hRing 4s ease-in-out infinite' }} />
                 <div style={{ position: 'absolute', inset: 30, borderRadius: '50%', border: '1.5px solid rgba(139,92,246,0.12)', animation: 'hRing 4s ease-in-out infinite 1s' }} />
                 <div style={{ position: 'absolute', inset: 60, borderRadius: '50%', border: '1.5px solid rgba(6,182,212,0.1)', animation: 'hRing 4s ease-in-out infinite 2s' }} />
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 130, height: 130, borderRadius: 32, background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 20px 60px rgba(59,130,246,0.35)', animation: 'hFloat 4s ease-in-out infinite', zIndex: 10 }}>
-                  <GraduationCap size={42} color="#fff" />
-                  <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#fff', marginTop: 4 }}>ITX</div>
-                  <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.8)', letterSpacing: 1 }}>IT PLATFORMA</div>
+                {/* Center card — wrapper animatsiya uchun, ichki div pozitsiya uchun */}
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 10, animation: 'hFloat 4s ease-in-out infinite' }}>
+                  <div style={{ width: 140, height: 140, borderRadius: 36, background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 20px 60px rgba(59,130,246,0.4), 0 0 0 8px rgba(59,130,246,0.08)' }}>
+                    <GraduationCap size={44} color="#fff" />
+                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#fff', marginTop: 6, letterSpacing: '-0.5px' }}>ITX</div>
+                    <div style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.75)', letterSpacing: 1.5, marginTop: 2, textTransform: 'uppercase' }}>IT PLATFORMA</div>
+                  </div>
                 </div>
                 {[
                   { slug: 'html-css', angle: 0 }, { slug: 'javascript', angle: 51 },

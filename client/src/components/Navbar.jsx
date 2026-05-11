@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
-  GraduationCap, BookOpen, DollarSign, LayoutDashboard,
+  GraduationCap, BookOpen, DollarSign,
   User, LogOut, Menu, X, ShieldCheck, Eye
 } from 'lucide-react'
 import useAuthStore from '../store/authStore'
@@ -29,10 +29,10 @@ export default function Navbar() {
 
   const navLinkStyle = (active) => ({
     display: 'flex', alignItems: 'center', gap: '0.4rem',
-    padding: '0.45rem 0.85rem', borderRadius: 8,
-    color: active ? 'var(--text)' : 'var(--text-muted)',
-    fontWeight: 500, fontSize: '0.87rem',
-    background: active ? 'rgba(99,102,241,0.12)' : 'transparent',
+    padding: '0.45rem 0.9rem', borderRadius: 8,
+    color: active ? '#3b82f6' : '#6b7280',
+    fontWeight: active ? 600 : 500, fontSize: '0.87rem',
+    background: active ? 'rgba(59,130,246,0.08)' : 'transparent',
     transition: 'all 0.2s', textDecoration: 'none',
   })
 
@@ -40,26 +40,26 @@ export default function Navbar() {
     <>
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-        background: 'rgba(15,15,26,0.92)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        borderBottom: '1px solid rgba(99,102,241,0.15)',
+        background: 'rgba(255,255,255,0.95)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid #e5e7eb',
         height: 64,
+        boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
       }}>
         <div className="container" style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
           {/* Logo */}
           <Link to={user?.role === 'admin' ? '/admin' : '/'} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(99,102,241,0.4)' }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(59,130,246,0.3)' }}>
               <GraduationCap size={20} color="#fff" />
             </div>
-            <span style={{ fontSize: '1.3rem', fontWeight: 900, background: 'var(--gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>ITX</span>
+            <span style={{ fontSize: '1.3rem', fontWeight: 900, background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>ITX</span>
           </Link>
 
           {/* Desktop nav */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }} className="nav-desktop">
             {user?.role === 'admin' ? (
-              /* Admin nav */
               <>
                 <Link to="/admin" style={{ ...navLinkStyle(isActive('/admin')), color: '#f59e0b', fontWeight: 600 }}>
                   <ShieldCheck size={16} /> Admin Panel
@@ -69,10 +69,12 @@ export default function Navbar() {
                 </Link>
               </>
             ) : (
-              /* Oddiy user nav */
               <>
                 {userNavLinks.map(({ to, icon, label }) => (
-                  <Link key={to} to={to} style={navLinkStyle(isActive(to))}>
+                  <Link key={to} to={to} style={navLinkStyle(isActive(to))}
+                    onMouseEnter={e => { if (!isActive(to)) { e.currentTarget.style.color = '#374151'; e.currentTarget.style.background = '#f9fafb' } }}
+                    onMouseLeave={e => { if (!isActive(to)) { e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.background = 'transparent' } }}
+                  >
                     {icon} {label}
                   </Link>
                 ))}
@@ -84,32 +86,38 @@ export default function Navbar() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }} className="nav-desktop">
             {user ? (
               <>
-                <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', padding: '0.35rem 0.7rem', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', transition: 'all 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+                <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', padding: '0.35rem 0.8rem', borderRadius: 10, background: '#f8fafc', border: '1.5px solid #e5e7eb', transition: 'all 0.2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.background = '#eff6ff' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = '#f8fafc' }}
                 >
                   {user.avatar
-                    ? <img src={user.avatar} alt="" style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary)' }} />
-                    : <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.75rem', color: '#fff' }}>
+                    ? <img src={user.avatar} alt="" style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', border: '2px solid #3b82f6' }} />
+                    : <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.75rem', color: '#fff' }}>
                         {user.first_name?.[0]?.toUpperCase()}
                       </div>
                   }
-                  <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{user.first_name}</span>
+                  <span style={{ fontWeight: 600, fontSize: '0.85rem', color: '#374151' }}>{user.first_name}</span>
                   <span className={`badge-${user.plan}`} style={{ fontSize: '0.62rem' }}>{user.plan?.toUpperCase()}</span>
                 </Link>
-                <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.45rem 0.85rem', borderRadius: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', fontWeight: 500, fontSize: '0.84rem', cursor: 'pointer', transition: 'all 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.18)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}
+                <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.45rem 0.85rem', borderRadius: 8, background: '#fef2f2', border: '1.5px solid #fecaca', color: '#ef4444', fontWeight: 600, fontSize: '0.84rem', cursor: 'pointer', transition: 'all 0.2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#ef4444' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca' }}
                 >
                   <LogOut size={14} /> Chiqish
                 </button>
               </>
             ) : (
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <Link to="/login" className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Link to="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', borderRadius: 9, background: '#fff', border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 600, fontSize: '0.85rem', textDecoration: 'none', transition: 'all 0.2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#3b82f6' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#374151' }}
+                >
                   <User size={14} /> Kirish
                 </Link>
-                <Link to="/register" className="btn btn-primary btn-sm">
+                <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', borderRadius: 9, background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', color: '#fff', fontWeight: 600, fontSize: '0.85rem', textDecoration: 'none', boxShadow: '0 4px 12px rgba(59,130,246,0.3)', transition: 'all 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = ''}
+                >
                   Ro'yxatdan o'tish
                 </Link>
               </div>
@@ -127,23 +135,23 @@ export default function Navbar() {
       {mobileOpen && (
         <div style={{
           position: 'fixed', top: 64, left: 0, right: 0, zIndex: 999,
-          background: 'rgba(15,15,26,0.98)', backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid var(--border)', padding: '1rem',
-          display: 'flex', flexDirection: 'column', gap: '0.3rem',
+          background: '#fff', borderBottom: '1px solid #e5e7eb',
+          padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.3rem',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
         }}>
           {user?.role === 'admin' ? (
             <>
               <Link to="/admin" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: '#f59e0b', fontWeight: 600 }}>
                 <ShieldCheck size={16} /> Admin Panel
               </Link>
-              <Link to="/" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: 'var(--text-muted)', fontWeight: 500 }}>
+              <Link to="/" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: '#6b7280', fontWeight: 500 }}>
                 <Eye size={16} /> Saytni ko'rish
               </Link>
             </>
           ) : (
             <>
               {userNavLinks.map(({ to, icon, label }) => (
-                <Link key={to} to={to} onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: isActive(to) ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 500, background: isActive(to) ? 'rgba(99,102,241,0.1)' : 'transparent' }}>
+                <Link key={to} to={to} onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: isActive(to) ? '#3b82f6' : '#6b7280', fontWeight: isActive(to) ? 600 : 500, background: isActive(to) ? 'rgba(59,130,246,0.08)' : 'transparent' }}>
                   {icon} {label}
                 </Link>
               ))}
@@ -151,7 +159,7 @@ export default function Navbar() {
           )}
           {user ? (
             <>
-              <Link to="/profile" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: 'var(--text-muted)', fontWeight: 500 }}>
+              <Link to="/profile" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: '#6b7280', fontWeight: 500 }}>
                 <User size={16} /> Profil
               </Link>
               <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: '#ef4444', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer', width: '100%', fontSize: '0.9rem' }}>
@@ -168,8 +176,8 @@ export default function Navbar() {
       )}
 
       <style>{`
-        .nav-toggle-btn{display:none;background:none;border:none;color:var(--text);cursor:pointer;padding:.4rem;border-radius:8px;transition:background .2s}
-        .nav-toggle-btn:hover{background:rgba(255,255,255,.08)}
+        .nav-toggle-btn{display:none;background:none;border:none;color:#374151;cursor:pointer;padding:.4rem;border-radius:8px;transition:background .2s}
+        .nav-toggle-btn:hover{background:#f3f4f6}
         @media(max-width:900px){
           .nav-desktop{display:none!important}
           .nav-toggle-btn{display:flex!important}
