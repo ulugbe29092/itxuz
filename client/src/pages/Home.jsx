@@ -2,13 +2,13 @@
 import { Link } from 'react-router-dom'
 import {
   Users, BookOpen, Video, Star, CheckCircle, XCircle,
-  ArrowRight, TrendingUp, Heart, Send, Phone, Mail,
-  MessageCircle, ChevronLeft, ChevronRight, GraduationCap
+  ArrowRight, TrendingUp, Heart, Phone, Mail,
+  MessageCircle, ChevronLeft, ChevronRight, GraduationCap,
+  Code2, Zap, Shield, Award
 } from 'lucide-react'
 import api from '../api/axios'
 import useAuthStore from '../store/authStore'
 import { getCourseLogo } from '../components/CourseLogos'
-import heroImg from '../assets/hero.png'
 
 const COURSES = [
   { slug: 'html-css',         title: 'HTML & CSS',       desc: 'Web sahifalar yaratishning asosi' },
@@ -207,36 +207,64 @@ export default function Home() {
                 ))}
               </div>
             </div>
-            {/* Hero image */}
-            <div className="fade-up hero-code-wrap" style={{ animationDelay: '.1s' }}>
-              <div style={{ position: 'relative' }}>
-                {/* Glow effect */}
-                <div style={{ position: 'absolute', inset: -2, borderRadius: 'var(--radius-lg)', background: 'var(--gradient)', opacity: 0.3, filter: 'blur(20px)', zIndex: 0 }} />
-                <img
-                  src={heroImg}
-                  alt="ITX Platform"
-                  style={{
-                    position: 'relative', zIndex: 1,
-                    width: '100%', borderRadius: 'var(--radius-lg)',
-                    border: '1px solid rgba(99,102,241,0.3)',
-                    boxShadow: '0 24px 64px rgba(99,102,241,0.25)',
-                    display: 'block'
-                  }}
-                />
-                {/* Floating badge */}
-                <div style={{ position: 'absolute', bottom: 24, left: 24, zIndex: 2, background: 'rgba(15,15,26,0.9)', backdropFilter: 'blur(12px)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 12, padding: '0.7rem 1rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <GraduationCap size={18} color="#fff" />
+            {/* Hero Visual - Animated */}
+            <div className="fade-up hero-visual-wrap" style={{ animationDelay: '.15s' }}>
+              <div className="hero-visual">
+                {/* Outer glow rings */}
+                <div className="hero-ring hero-ring-1" />
+                <div className="hero-ring hero-ring-2" />
+                <div className="hero-ring hero-ring-3" />
+
+                {/* Center card */}
+                <div className="hero-center-card">
+                  <div className="hero-center-icon">
+                    <GraduationCap size={40} color="#fff" />
                   </div>
-                  <div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>O'quvchilar soni</div>
-                    <div style={{ fontSize: '1rem', fontWeight: 800, background: 'var(--gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>1,250+</div>
-                  </div>
+                  <div className="hero-center-text">ITX</div>
+                  <div className="hero-center-sub">IT Platform</div>
                 </div>
-                {/* Floating badge 2 */}
-                <div style={{ position: 'absolute', top: 24, right: 24, zIndex: 2, background: 'rgba(15,15,26,0.9)', backdropFilter: 'blur(12px)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 12, padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <CheckCircle size={16} color="#22c55e" />
-                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#22c55e' }}>15+ Kurs</span>
+
+                {/* Orbiting tech icons */}
+                {[
+                  { slug: 'html-css',   angle: 0,   label: 'HTML' },
+                  { slug: 'javascript', angle: 45,  label: 'JS' },
+                  { slug: 'python',     angle: 90,  label: 'Python' },
+                  { slug: 'reactjs',    angle: 135, label: 'React' },
+                  { slug: 'nodejs',     angle: 180, label: 'Node' },
+                  { slug: 'typescript', angle: 225, label: 'TS' },
+                  { slug: 'docker-devops', angle: 270, label: 'Docker' },
+                  { slug: 'mongodb',    angle: 315, label: 'Mongo' },
+                ].map((item, i) => {
+                  const logo = getCourseLogo(item.slug, 24)
+                  const rad = (item.angle * Math.PI) / 180
+                  const r = 130
+                  const x = Math.cos(rad) * r
+                  const y = Math.sin(rad) * r
+                  return (
+                    <div key={i} className="orbit-icon" style={{
+                      left: `calc(50% + ${x}px - 24px)`,
+                      top: `calc(50% + ${y}px - 24px)`,
+                      animationDelay: `${i * 0.2}s`
+                    }}>
+                      <div style={{ width: 48, height: 48, borderRadius: 12, background: logo.bg, border: `1.5px solid ${logo.color}50`, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
+                        {logo.svg}
+                      </div>
+                    </div>
+                  )
+                })}
+
+                {/* Floating stat cards */}
+                <div className="hero-stat-card hero-stat-1">
+                  <div style={{ fontSize: '1.4rem', fontWeight: 900, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>1,250+</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>O'quvchilar</div>
+                </div>
+                <div className="hero-stat-card hero-stat-2">
+                  <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#22c55e' }}>15+</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>Kurslar</div>
+                </div>
+                <div className="hero-stat-card hero-stat-3">
+                  <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#f59e0b' }}>4.9★</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>Reyting</div>
                 </div>
               </div>
             </div>
@@ -410,32 +438,113 @@ export default function Home() {
       </footer>
 
       <style>{`
-        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+        @keyframes floatStat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.03)}}
+        @keyframes orbitPulse{0%,100%{opacity:0.7;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+        @keyframes ringPulse{0%{opacity:0.15;transform:scale(0.95)}50%{opacity:0.35;transform:scale(1)}100%{opacity:0.15;transform:scale(0.95)}}
+        @keyframes rotateSlow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+        /* ===== HERO VISUAL ===== */
+        .hero-visual-wrap{display:flex;align-items:center;justify-content:center}
+        .hero-visual{
+          position:relative;width:360px;height:360px;
+          flex-shrink:0;
+        }
+        .hero-ring{
+          position:absolute;border-radius:50%;border:1px solid rgba(99,102,241,0.25);
+          top:50%;left:50%;transform:translate(-50%,-50%);
+          animation:ringPulse 3s ease-in-out infinite;
+        }
+        .hero-ring-1{width:200px;height:200px;animation-delay:0s;border-color:rgba(99,102,241,0.3)}
+        .hero-ring-2{width:290px;height:290px;animation-delay:0.8s;border-color:rgba(139,92,246,0.2)}
+        .hero-ring-3{width:360px;height:360px;animation-delay:1.6s;border-color:rgba(99,102,241,0.12)}
+
+        .hero-center-card{
+          position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+          width:110px;height:110px;border-radius:28px;
+          background:linear-gradient(135deg,#6366f1,#8b5cf6);
+          display:flex;flex-direction:column;align-items:center;justify-content:center;
+          box-shadow:0 0 40px rgba(99,102,241,0.6),0 0 80px rgba(99,102,241,0.3);
+          animation:float 4s ease-in-out infinite;
+          z-index:10;
+        }
+        .hero-center-text{font-size:1.3rem;font-weight:900;color:#fff;line-height:1}
+        .hero-center-sub{font-size:0.6rem;color:rgba(255,255,255,0.7);margin-top:2px;letter-spacing:1px;text-transform:uppercase}
+
+        .orbit-icon{
+          position:absolute;z-index:8;
+          animation:orbitPulse 3s ease-in-out infinite;
+          transition:transform 0.3s;
+        }
+        .orbit-icon:hover{transform:scale(1.2)!important;z-index:20}
+
+        .hero-stat-card{
+          position:absolute;z-index:15;
+          background:rgba(15,15,26,0.92);
+          backdrop-filter:blur(16px);
+          border:1px solid rgba(99,102,241,0.25);
+          border-radius:14px;padding:0.7rem 1rem;
+          text-align:center;min-width:80px;
+          animation:floatStat 4s ease-in-out infinite;
+          box-shadow:0 8px 32px rgba(0,0,0,0.4);
+        }
+        .hero-stat-1{bottom:-10px;left:-20px;animation-delay:0s}
+        .hero-stat-2{top:10px;right:-30px;animation-delay:1.3s}
+        .hero-stat-3{bottom:40px;right:-40px;animation-delay:2.6s}
+
+        /* ===== LAYOUT ===== */
         .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
         .stats-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
         .pricing-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
         .footer-grid-4{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:3rem;margin-bottom:2rem}
         .testimonials-grid-resp{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+
+        /* ===== RESPONSIVE ===== */
         @media(max-width:1200px){
           .pricing-grid-4{grid-template-columns:repeat(2,1fr)}
           .footer-grid-4{grid-template-columns:1fr 1fr;gap:2rem}
         }
         @media(max-width:1024px){
-          .hero-grid{grid-template-columns:1fr}
-          .hero-code-wrap{display:none}
+          .hero-grid{grid-template-columns:1fr;text-align:center;gap:3rem}
+          .hero-visual-wrap{justify-content:center}
+          .hero-grid>div:first-child>div[style*="inline-flex"]{margin:0 auto 1.5rem}
+          .hero-grid>div:first-child>div[style*="flex-wrap"]{justify-content:center}
+          .hero-grid>div:first-child>div[style*="gap:1.5rem"]{justify-content:center}
           .stats-grid-4{grid-template-columns:repeat(2,1fr)}
+          .hero-visual{width:300px;height:300px}
+          .hero-ring-3{width:300px;height:300px}
+          .hero-ring-2{width:240px;height:240px}
+          .hero-ring-1{width:165px;height:165px}
         }
         @media(max-width:768px){
-          .hero-grid h1{font-size:2rem!important}
+          .hero-grid h1{font-size:2.2rem!important}
           .stats-grid-4{grid-template-columns:repeat(2,1fr);gap:1rem}
           .pricing-grid-4{grid-template-columns:1fr}
           .testimonials-grid-resp{grid-template-columns:1fr}
           .footer-grid-4{grid-template-columns:1fr}
           section{padding:3rem 0!important}
+          .hero-visual{width:260px;height:260px}
+          .hero-ring-3{width:260px;height:260px}
+          .hero-ring-2{width:200px;height:200px}
+          .hero-ring-1{width:140px;height:140px}
+          .hero-center-card{width:90px;height:90px;border-radius:22px}
+          .hero-stat-1{bottom:-5px;left:-10px}
+          .hero-stat-2{top:5px;right:-15px}
+          .hero-stat-3{display:none}
         }
         @media(max-width:480px){
           .stats-grid-4{grid-template-columns:1fr 1fr}
+          .hero-grid h1{font-size:1.9rem!important}
+          .hero-visual{width:220px;height:220px}
+          .hero-ring-3{width:220px;height:220px}
+          .hero-ring-2{width:170px;height:170px}
+          .hero-ring-1{width:120px;height:120px}
+          .hero-center-card{width:76px;height:76px;border-radius:18px}
+          .hero-stat-2{right:-5px}
         }
       `}</style>
     </div>
