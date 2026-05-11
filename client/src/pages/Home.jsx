@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import {
   Users, BookOpen, Video, Star, CheckCircle,
   ArrowRight, TrendingUp, Heart, Phone, Mail,
-  MessageCircle, ChevronLeft, ChevronRight, GraduationCap,
+  MessageCircle, GraduationCap,
   Code2, Zap, Shield, Award
 } from 'lucide-react'
 import api from '../api/axios'
@@ -43,72 +43,35 @@ function Counter({ target, decimal }) {
   return <span>{val}</span>
 }
 
-// Auto-sliding courses (4 ta ko'rinadi, 5 sekundda o'tadi)
-function CourseSlider() {
-  const [idx, setIdx] = useState(0)
-  const total = COURSES.length
-
-  useEffect(() => {
-    const t = setInterval(() => {
-      setIdx(i => (i + 1) % (total - 4 + 1))
-    }, 5000)
-    return () => clearInterval(t)
-  }, [])
-
-  const prev = () => setIdx(i => Math.max(0, i - 1))
-  const next = () => setIdx(i => Math.min(total - 4, i + 1))
-
+function CourseGrid() {
   return (
-    <div style={{ position: 'relative' }}>
-      <div style={{ overflow: 'hidden' }}>
-        <div style={{
-          display: 'flex', gap: '1rem',
-          transform: `translateX(calc(-${idx * (100 / 4)}% - ${idx * (16 / 4)}px))`,
-          transition: 'transform 0.6s cubic-bezier(.4,0,.2,1)',
-          width: `${(total / 4) * 100}%`
-        }}>
-          {COURSES.map((c, i) => {
-            const logo = getCourseLogo(c.slug)
-            return (
-            <div key={i} style={{
-              flex: `0 0 calc(${100 / 4}% - ${(4 - 1) * 16 / 4}px)`,
-              background: 'var(--card)', border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)', padding: '1.5rem',
-              textAlign: 'center', transition: 'all 0.3s', cursor: 'pointer',
-              minWidth: 0
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = logo.color; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${logo.color}30` }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}
-            >
-              <div style={{ width: 64, height: 64, borderRadius: 14, background: logo.bg, border: `1px solid ${logo.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
-                {logo.svg}
-              </div>
-              <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.3rem' }}>{c.title}</div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{c.desc}</div>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }} className="courses-home-grid">
+      {COURSES.map((c, i) => {
+        const logo = getCourseLogo(c.slug)
+        return (
+          <div key={i} style={{
+            background: 'var(--card)', border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-lg)', padding: '1.2rem',
+            textAlign: 'center', transition: 'all 0.3s', cursor: 'pointer',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = logo.color; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${logo.color}30` }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}
+          >
+            <div style={{ width: 52, height: 52, borderRadius: 12, background: logo.bg, border: `1px solid ${logo.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.8rem' }}>
+              {logo.svg}
             </div>
-            )
-          })}
-        </div>
-      </div>
-      <button onClick={prev} disabled={idx === 0} style={{ position: 'absolute', left: -20, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: 'var(--card)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', transition: 'all 0.2s', opacity: idx === 0 ? 0.3 : 1 }}>
-        <ChevronLeft size={18} />
-      </button>
-      <button onClick={next} disabled={idx >= total - 4} style={{ position: 'absolute', right: -20, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: 'var(--card)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', transition: 'all 0.2s', opacity: idx >= total - 4 ? 0.3 : 1 }}>
-        <ChevronRight size={18} />
-      </button>
-      {/* Dots */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
-        {Array.from({ length: total - 4 + 1 }).map((_, i) => (
-          <button key={i} onClick={() => setIdx(i)} style={{ width: i === idx ? 24 : 8, height: 8, borderRadius: 4, background: i === idx ? 'var(--primary)' : 'var(--border)', border: 'none', cursor: 'pointer', transition: 'all 0.3s', padding: 0 }} />
-        ))}
-      </div>
+            <div style={{ fontWeight: 700, fontSize: '0.82rem', marginBottom: '0.25rem' }}>{c.title}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>{c.desc}</div>
+          </div>
+        )
+      })}
     </div>
   )
 }
 
 export default function Home() {
   const { user } = useAuthStore()
-  const [stats, setStats] = useState({ total_users: 1250, total_courses: 15, total_videos: 340, rating: 4.9 })
+  const [stats, setStats] = useState({ total_users: 0, total_courses: 15, total_videos: 0, rating: 4.9 })
 
   useEffect(() => {
     api.get('/stats').then(r => setStats(r.data)).catch(() => {})
@@ -243,14 +206,102 @@ export default function Home() {
             <h2 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '.8rem' }}>Bizning <span className="gradient-text">Kurslar</span></h2>
             <p style={{ color: 'var(--text-muted)' }}>Zamonaviy IT texnologiyalarini o'rganing</p>
           </div>
-          <div style={{ padding: '0 1.5rem' }}>
-            <CourseSlider />
+          <div>
+            <CourseGrid />
           </div>
           <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
             <Link to={user ? '/courses' : '/register'} className="btn btn-primary btn-lg">
               {user ? "Kurslarni ko'rish" : 'Bepul boshlash'} <ArrowRight size={18} />
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* NIMA O'RGATAMIZ */}
+      <section style={{ padding: '5rem 0', background: 'var(--bg2)' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '.8rem' }}>Nima <span className="gradient-text">o'rgatamiz?</span></h2>
+            <p style={{ color: 'var(--text-muted)', maxWidth: 600, margin: '0 auto' }}>ITX platformasida siz zamonaviy IT texnologiyalarini amaliy loyihalar orqali o'rganasiz</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.5rem' }} className="features-grid-resp">
+            {[
+              { icon: '🌐', title: 'Web Dasturlash', desc: 'HTML, CSS, JavaScript, React, Vue.js, Node.js — zamonaviy web ilovalar yaratishni o\'rganing. Frontend va backend texnologiyalarini birgalikda o\'zlashtirasiz.' },
+              { icon: '🐍', title: 'Backend & Python', desc: 'Python, Django, FastAPI, PostgreSQL, MongoDB — server tomonida dasturlash va ma\'lumotlar bazasi bilan ishlashni o\'rganing.' },
+              { icon: '📱', title: 'Mobil Ilovalar', desc: 'Flutter & Dart bilan iOS va Android uchun bir vaqtda mobil ilovalar yarating. Google Play va App Store ga chiqaring.' },
+              { icon: '🤖', title: 'AI & Machine Learning', desc: 'Sun\'iy intellekt, neural tarmoqlar, Python bilan ML modellarini yarating. TensorFlow va scikit-learn kutubxonalarini o\'rganing.' },
+              { icon: '🔒', title: 'Cybersecurity', desc: 'Axborot xavfsizligi asoslari, etik hacking, penetration testing va himoya usullarini professional darajada o\'rganing.' },
+              { icon: '🐳', title: 'DevOps & Cloud', desc: 'Docker, Kubernetes, CI/CD, Linux, Git — zamonaviy DevOps amaliyotlari va cloud texnologiyalarini o\'rganing.' },
+            ].map((f, i) => (
+              <div key={i} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2rem', transition: 'all 0.3s' }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = 'var(--primary)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.borderColor = 'var(--border)' }}
+              >
+                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>{f.icon}</div>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.8rem' }}>{f.title}</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.7 }}>{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* NARXLAR */}
+      <section style={{ padding: '5rem 0' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '.8rem' }}>Tarif <span className="gradient-text">Rejalari</span></h2>
+            <p style={{ color: 'var(--text-muted)' }}>O'zingizga mos rejani tanlang va IT karyerangizni boshlang</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1.5rem', alignItems: 'stretch' }} className="pricing-home-grid">
+            {[
+              { name: 'Free', price: '0', dur: '3 kun', badge: 'free',
+                features: ['3 ta kurs', 'Video darslar', 'Quiz testlar', 'AI (cheklangan)'],
+                no: ['Sertifikat', 'Mentor', 'Ish kafolati'] },
+              { name: 'Pro', price: '700,000', dur: '30 kun', badge: 'pro', popular: true,
+                features: ['Barcha kurslar', 'Video darslar', 'AI chat', 'Sertifikat'],
+                no: ['Mentor', 'Ish kafolati'] },
+              { name: 'Max', price: '1,500,000', dur: '30 kun', badge: 'max',
+                features: ['Barcha kurslar', 'AI chat', 'Sertifikat', 'Mentor', 'Loyiha tekshiruvi'],
+                no: ['Ish kafolati'] },
+              { name: 'VIP', price: '3,000,000', dur: '30 kun', badge: 'vip',
+                features: ['Barcha kurslar', 'AI chat', 'Sertifikat', 'Mentor', 'Ish kafolati', 'CV tayyorlash', 'Intervyu'],
+                no: [] },
+            ].map((p, i) => (
+              <div key={i} style={{
+                background: 'var(--card)',
+                border: `1px solid ${p.popular ? 'var(--primary)' : p.badge === 'vip' ? '#f59e0b' : 'var(--border)'}`,
+                borderRadius: 'var(--radius-lg)', padding: '2rem',
+                position: 'relative', transition: 'transform .3s',
+                boxShadow: p.popular ? '0 0 30px rgba(99,102,241,.2)' : 'none',
+                display: 'flex', flexDirection: 'column'
+              }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
+                onMouseLeave={e => e.currentTarget.style.transform = ''}
+              >
+                {p.popular && <div style={{ position: 'absolute', top: -1, right: '1.5rem', background: 'var(--gradient)', color: '#fff', fontSize: '.7rem', fontWeight: 700, padding: '.3rem .8rem', borderRadius: '0 0 8px 8px' }}>Mashhur</div>}
+                <span className={`badge-${p.badge}`}>{p.name}</span>
+                <div style={{ fontSize: '2rem', fontWeight: 800, margin: '.8rem 0 .2rem', background: 'var(--gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{p.price}</div>
+                <div style={{ fontSize: '.8rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>so'm / {p.dur}</div>
+                <ul style={{ listStyle: 'none', marginBottom: '1.5rem', flex: 1 }}>
+                  {p.features.map(f => <li key={f} style={{ display: 'flex', alignItems: 'center', gap: '.5rem', padding: '.3rem 0', fontSize: '.85rem' }}><CheckCircle size={14} color="#22c55e" /> {f}</li>)}
+                  {p.no.map(f => <li key={f} style={{ display: 'flex', alignItems: 'center', gap: '.5rem', padding: '.3rem 0', fontSize: '.85rem', color: 'var(--text-muted)' }}><span style={{color:'#ef4444',fontSize:'1rem'}}>✕</span> {f}</li>)}
+                </ul>
+                <Link to="/pricing" className={`btn ${p.popular || p.badge === 'vip' ? 'btn-primary' : 'btn-outline'} btn-block`} style={{ justifyContent: 'center', marginTop: 'auto' }}>Tanlash</Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section style={{ padding: '5rem 0', background: 'linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.1))', borderTop: '1px solid var(--border)' }}>
+        <div className="container" style={{ textAlign: 'center' }}>
+          <h2 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '1rem' }}>IT karyerangizni <span className="gradient-text">bugun boshlang!</span></h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', maxWidth: 500, margin: '0 auto 2rem' }}>3 kunlik bepul sinov davri bilan hech qanday xavf yo'q. Ro'yxatdan o'ting va darhol boshlang.</p>
+          <Link to={user ? '/courses' : '/register'} className="btn btn-primary btn-lg">
+            {user ? "Kurslarni ko'rish" : 'Bepul boshlash'} <ArrowRight size={18} />
+          </Link>
         </div>
       </section>
 
@@ -335,6 +386,10 @@ export default function Home() {
         @keyframes rotateSlow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
         @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
         @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        @keyframes heroCardGlow{
+          0%,100%{box-shadow:0 0 40px rgba(99,102,241,0.6),0 0 80px rgba(99,102,241,0.3)}
+          50%{box-shadow:0 0 70px rgba(99,102,241,0.9),0 0 120px rgba(139,92,246,0.5)}
+        }
 
         /* ===== HERO VISUAL ===== */
         .hero-visual-wrap{display:flex;align-items:center;justify-content:center}
@@ -353,12 +408,12 @@ export default function Home() {
 
         .hero-center-card{
           position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-          width:110px;height:110px;border-radius:28px;
+          width:130px;height:130px;border-radius:32px;
           background:linear-gradient(135deg,#6366f1,#8b5cf6);
           display:flex;flex-direction:column;align-items:center;justify-content:center;
-          box-shadow:0 0 40px rgba(99,102,241,0.6),0 0 80px rgba(99,102,241,0.3);
-          animation:float 4s ease-in-out infinite;
-          z-index:10;
+          box-shadow:0 0 50px rgba(99,102,241,0.7),0 0 100px rgba(99,102,241,0.35);
+          animation:float 4s ease-in-out infinite, heroCardGlow 3s ease-in-out infinite;
+          z-index:10;cursor:pointer;
         }
         .hero-center-text{font-size:1.3rem;font-weight:900;color:#fff;line-height:1}
         .hero-center-sub{font-size:0.6rem;color:rgba(255,255,255,0.7);margin-top:2px;letter-spacing:1px;text-transform:uppercase}
@@ -390,6 +445,9 @@ export default function Home() {
         .pricing-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;align-items:stretch}
         .footer-grid-4{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:3rem;margin-bottom:2rem}
         .testimonials-grid-resp{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+        .courses-home-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem}
+        .features-grid-resp{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+        .pricing-home-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
 
         /* ===== RESPONSIVE ===== */
         @media(max-width:1200px){
@@ -407,6 +465,8 @@ export default function Home() {
           .hero-ring-3{width:300px;height:300px}
           .hero-ring-2{width:240px;height:240px}
           .hero-ring-1{width:165px;height:165px}
+          .courses-home-grid{grid-template-columns:repeat(3,1fr)}
+          .pricing-home-grid{grid-template-columns:repeat(2,1fr)}
         }
         @media(max-width:768px){
           .hero-grid h1{font-size:2.2rem!important}
@@ -423,6 +483,9 @@ export default function Home() {
           .hero-stat-1{bottom:-5px;left:-10px}
           .hero-stat-2{top:5px;right:-15px}
           .hero-stat-3{display:none}
+          .courses-home-grid{grid-template-columns:repeat(2,1fr)}
+          .features-grid-resp{grid-template-columns:1fr}
+          .pricing-home-grid{grid-template-columns:1fr}
         }
         @media(max-width:480px){
           .stats-grid-4{grid-template-columns:1fr 1fr}
@@ -433,6 +496,7 @@ export default function Home() {
           .hero-ring-1{width:120px;height:120px}
           .hero-center-card{width:76px;height:76px;border-radius:18px}
           .hero-stat-2{right:-5px}
+          .courses-home-grid{grid-template-columns:repeat(2,1fr)}
         }
       `}</style>
     </div>

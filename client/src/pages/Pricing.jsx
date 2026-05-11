@@ -27,6 +27,7 @@ export default function Pricing() {
   const [modal, setModal] = useState(null)
   const [file, setFile] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [paymentSuccess, setPaymentSuccess] = useState(false)
 
   const handlePayment = async (e) => {
     e.preventDefault()
@@ -39,9 +40,14 @@ export default function Pricing() {
       fd.append('payment_proof', file)
       // Content-Type ni axios o'zi qo'yadi — qo'lda bermaslik kerak!
       await api.post('/payment/submit', fd)
-      toast.success("To'lovingiz qabul qilindi! 24 soat ichida adminlar to'lovni tasdiqlashadi.")
-      setModal(null)
-      setFile(null)
+      toast.success("To'lovingiz qabul qilindi!")
+      setPaymentSuccess(true)
+      // 10 soniyadan keyin modal yopilsin
+      setTimeout(() => {
+        setModal(null)
+        setFile(null)
+        setPaymentSuccess(false)
+      }, 10000)
     } catch (err) {
       const msg = err.response?.data?.error || "To'lovni yuborishda xatolik"
       toast.error(msg)
@@ -120,22 +126,53 @@ export default function Pricing() {
                 ✅ To'lovingiz tasdiqlandi — 24 soat ichida adminlar to'lovni tasdiqlashadi.<br/>
                 📞 Savol bo'lsa: <a href="tel:+998906373754" style={{color:'#22c55e',fontWeight:700}}>+998 90 637 37 54</a>
               </div>
-              <form onSubmit={handlePayment}>
-                <div className="form-group">
-                  <label className="form-label">To'lov cheki (rasm)</label>
-                  <label className="file-upload-label">
-                    <Upload size={18} />
-                    {file ? file.name : 'Rasm tanlash...'}
-                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => setFile(e.target.files[0])} required />
-                  </label>
+              {paymentSuccess && (
+                <div
+                  style={{
+                    background: 'linear-gradient(135deg,rgba(34,197,94,0.15),rgba(34,197,94,0.05))',
+                    border: '2px solid rgba(34,197,94,0.4)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: '1.5rem',
+                    marginBottom: '1rem',
+                    textAlign: 'center',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => { setModal(null); setFile(null); setPaymentSuccess(false) }}
+                  title="Yopish uchun bosing"
+                >
+                  <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>✅</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 800, color: '#22c55e', marginBottom: '0.5rem' }}>
+                    To'lovingiz qabul qilindi!
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '0.8rem' }}>
+                    24 soat ichida adminlar to'lovni tasdiqlashadi va tarifingiz faollashadi.
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: '#22c55e', fontWeight: 600 }}>
+                    📞 Savol bo'lsa: <a href="tel:+998906373754" style={{color:'#22c55e'}}>+998 90 637 37 54</a>
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.8rem' }}>
+                    Bu xabar 10 soniyadan keyin yopiladi • Yopish uchun bosing
+                  </div>
                 </div>
-                <button type="submit" className="btn btn-primary btn-block" disabled={submitting}>
-                  {submitting
-                    ? <><Loader2 size={16} className="spin" /> Yuborilmoqda...</>
-                    : <><CreditCard size={16} /> To'lovni yuborish</>
-                  }
-                </button>
-              </form>
+              )}
+              {!paymentSuccess && (
+                <form onSubmit={handlePayment}>
+                  <div className="form-group">
+                    <label className="form-label">To'lov cheki (rasm)</label>
+                    <label className="file-upload-label">
+                      <Upload size={18} />
+                      {file ? file.name : 'Rasm tanlash...'}
+                      <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => setFile(e.target.files[0])} required />
+                    </label>
+                  </div>
+                  <button type="submit" className="btn btn-primary btn-block" disabled={submitting}>
+                    {submitting
+                      ? <><Loader2 size={16} className="spin" /> Yuborilmoqda...</>
+                      : <><CreditCard size={16} /> To'lovni yuborish</>
+                    }
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         </div>

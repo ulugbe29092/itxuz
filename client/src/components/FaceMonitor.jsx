@@ -21,26 +21,26 @@ import { CameraOff, AlertTriangle, ShieldCheck, Eye, EyeOff, Lock } from 'lucide
 let faceapi = null
 
 const MODELS_URL = '/models'
-const CHECK_INTERVAL_MS = 1000       // har 1 sekundda tekshir (TEZROQ)
-const MAX_WARNINGS = 3               // 3 ta ogohlantirish → reset
-const YAW_THRESHOLD = 42             // bosh yon burilish daraja
-const ABSENT_SECONDS = 2             // 2 sekund yuz yo'q bo'lsa ogohlantirish (TEZROQ)
-const BRIGHTNESS_THRESHOLD = 30      // qorong'u chegarasi
-const WARN_COOLDOWN_MS = 5000        // ogohlantirishlar orasidagi minimal vaqt (5 sekund - PROFESSIONAL)
+const CHECK_INTERVAL_MS = 500        // har 0.5 sekundda tekshir
+const MAX_WARNINGS = 3
+const YAW_THRESHOLD = 15             // bosh yon burilish 15% (eski 42 edi)
+const ABSENT_SECONDS = 0.5           // 0.5 sekund yuz yo'q bo'lsa ogohlantirish
+const BRIGHTNESS_THRESHOLD = 30
+const WARN_COOLDOWN_MS = 500         // 0.5 sekund cooldown (eski 5000 edi)
 
-// Ko'z harakatlari uchun parametrlar (pixel asosida)
+// Ko'z harakatlari uchun parametrlar
 const EYE_ASPECT_RATIO_THRESHOLD = 0.21  // ko'z yopiq/ochiq chegarasi
 const GAZE_THRESHOLDS = {
-  down: 80,    // pastga 80px dan ko'p qaramasa ogohlantirish yo'q
-  left: 80,    // chapga 80px dan ko'p qaramasa ogohlantirish yo'q
-  right: 80,   // o'ngga 80px dan ko'p qaramasa ogohlantirish yo'q
-  up: 80       // tepaga 80px dan ko'p qaramasa ogohlantirish yo'q
+  down: 15,    // 15% chegara
+  left: 15,
+  right: 15,
+  up: 15
 }
-const EYE_CLOSED_DURATION = 2000         // ko'z yopiq bo'lish vaqti (2 sekund - TEZROQ)
-const GAZE_VIOLATION_DURATION = 2000     // ko'z harakati davomiyligi (2 sekund)
+const EYE_CLOSED_DURATION = 500          // 0.5 sekund
+const GAZE_VIOLATION_DURATION = 500      // 0.5 sekund
 
-// Bosh harakati parametrlari (pixel asosida)
-const HEAD_MOVEMENT_THRESHOLD = 50       // bosh 50px ichida erkin qimirlaydi
+// Bosh harakati parametrlari
+const HEAD_MOVEMENT_THRESHOLD = 15       // 15% chegara
 
 // ===== Yorug'lik tekshiruvi =====
 function checkBrightness(video) {
@@ -61,7 +61,7 @@ function checkBrightness(video) {
   }
 }
 
-// ===== Yaw burchagi (faqat yon burilish) =====
+// ===== Yaw burchagi (faqat yon burilish) — foizga o'tkazish =====
 function calcYaw(landmarks) {
   try {
     const pts = landmarks.positions
@@ -72,7 +72,8 @@ function calcYaw(landmarks) {
     const eyeWidth  = Math.abs(rightEye.x - leftEye.x)
     if (eyeWidth < 5) return 0
     const noseOffset = noseTip.x - eyeCenter.x
-    return Math.abs((noseOffset / eyeWidth) * 90)
+    // Foizga o'tkazish: noseOffset / eyeWidth * 100
+    return Math.abs((noseOffset / eyeWidth) * 100)
   } catch {
     return 0
   }
@@ -92,7 +93,7 @@ function calcEyeAspectRatio(eyePoints) {
   }
 }
 
-// ===== Ko'z harakati tahlili (pixel asosida) =====
+// ===== Ko'z harakati tahlili — foizga o'tkazish =====
 function analyzeGaze(landmarks, videoWidth, videoHeight) {
   try {
     const pts = landmarks.positions
@@ -108,7 +109,7 @@ function analyzeGaze(landmarks, videoWidth, videoHeight) {
     const avgEAR = (leftEAR + rightEAR) / 2
     
     if (avgEAR < EYE_ASPECT_RATIO_THRESHOLD) {
-      return { status: 'closed', direction: null, offsetPx: { x: 0, y: 0 } }
+      return { status: 'closed', direction: null, offsetPct: { x: 0, y: 0 } }
     }
     
     // Ko'z markazi
@@ -124,43 +125,34 @@ function analyzeGaze(landmarks, videoWidth, videoHeight) {
     // Burun uchi (30) — markaziy nuqta
     const noseTip = pts[30]
     
-    // Pixel offset hisoblash
+    // Foizga o'tkazish (video o'lchamiga nisbatan)
     const eyeCenterX = (leftCenter.x + rightCenter.x) / 2
     const eyeCenterY = (leftCenter.y + rightCenter.y) / 2
     
-    const offsetPx = {
-      x: Math.abs(eyeCenterX - noseTip.x),
-      y: Math.abs(eyeCenterY - noseTip.y)
+    const faceWidth = Math.abs(pts[16].x - pts[0].x) || (videoWidth * 0.3)
+    const faceHeight = Math.abs(pts[8].y - pts[27].y) || (videoHeight * 0.4)
+    
+    const offsetPct = {
+      x: Math.abs(eyeCenterX - noseTip.x) / faceWidth * 100,
+      y: Math.abs(eyeCenterY - noseTip.y) / faceHeight * 100
     }
     
-    // Yo'nalishni aniqlash (pixel chegaralariga qarab)
+    // Yo'nalishni aniqlash (foiz chegaralariga qarab)
     let direction = null
     
-    // Pastga qarash (80px dan ko'p)
-    if (eyeCenterY > noseTip.y && offsetPx.y > GAZE_THRESHOLDS.down) {
-      direction = 'down'
-    }
-    // Tepaga qarash (80px dan ko'p)
-    else if (eyeCenterY < noseTip.y && offsetPx.y > GAZE_THRESHOLDS.up) {
-      direction = 'up'
-    }
-    // Chapga qarash (80px dan ko'p)
-    else if (eyeCenterX < noseTip.x && offsetPx.x > GAZE_THRESHOLDS.left) {
-      direction = 'left'
-    }
-    // O'ngga qarash (80px dan ko'p)
-    else if (eyeCenterX > noseTip.x && offsetPx.x > GAZE_THRESHOLDS.right) {
-      direction = 'right'
-    }
+    if (eyeCenterY > noseTip.y && offsetPct.y > GAZE_THRESHOLDS.down) direction = 'down'
+    else if (eyeCenterY < noseTip.y && offsetPct.y > GAZE_THRESHOLDS.up) direction = 'up'
+    else if (eyeCenterX < noseTip.x && offsetPct.x > GAZE_THRESHOLDS.left) direction = 'left'
+    else if (eyeCenterX > noseTip.x && offsetPct.x > GAZE_THRESHOLDS.right) direction = 'right'
     
     return {
       status: 'open',
       direction,
-      offsetPx,
+      offsetPct,
       ear: avgEAR
     }
   } catch {
-    return { status: 'unknown', direction: null, offsetPx: { x: 0, y: 0 } }
+    return { status: 'unknown', direction: null, offsetPct: { x: 0, y: 0 } }
   }
 }
 
@@ -456,7 +448,7 @@ export default function FaceMonitor({ onViolation, onDarkExit, onAdminNotify, ac
           absentRef.current = setTimeout(() => {
             absentRef.current = null
             issueWarning('absent')
-          }, ABSENT_SECONDS * 1000) // 2 sekund
+          }, ABSENT_SECONDS * 1000) // 500ms
         }
         return
       }
@@ -469,21 +461,22 @@ export default function FaceMonitor({ onViolation, onDarkExit, onAdminNotify, ac
 
       const det = detections[0]
 
-      // 4. Bosh harakati tekshiruvi (80px dan ko'p qimirlatsa - DARHOL)
+      // 4. Bosh harakati tekshiruvi — foizga o'tkazish (face width ga nisbatan)
       if (det.detection && det.detection.box) {
+        const box = det.detection.box
+        const faceW = box.width || 100
         const currentPos = {
-          x: det.detection.box.x + det.detection.box.width / 2,
-          y: det.detection.box.y + det.detection.box.height / 2
+          x: box.x + box.width / 2,
+          y: box.y + box.height / 2
         }
 
         if (lastHeadPosRef.current) {
-          const movement = Math.sqrt(
-            Math.pow(currentPos.x - lastHeadPosRef.current.x, 2) +
-            Math.pow(currentPos.y - lastHeadPosRef.current.y, 2)
+          const movePct = Math.sqrt(
+            Math.pow((currentPos.x - lastHeadPosRef.current.x) / faceW * 100, 2) +
+            Math.pow((currentPos.y - lastHeadPosRef.current.y) / faceW * 100, 2)
           )
 
-          if (movement > HEAD_MOVEMENT_THRESHOLD) {
-            // DARHOL ogohlantirish - timer yo'q
+          if (movePct > HEAD_MOVEMENT_THRESHOLD) {
             issueWarning('headMove')
             lastHeadPosRef.current = currentPos
             return
@@ -669,7 +662,7 @@ export default function FaceMonitor({ onViolation, onDarkExit, onAdminNotify, ac
               </div>
             )}
             {lastMsg && <div className="fm-detail-row fm-detail-warn"><AlertTriangle size={12}/> {lastMsg}</div>}
-            <div className="fm-detail-hint">Ko'z: 80px chegara • Bosh: 50px • 2s kutish</div>
+            <div className="fm-detail-hint">Ko'z: 15% • Bosh: 15% • 0.5s kutish</div>
           </div>
         )}
       </div>

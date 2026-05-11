@@ -11,13 +11,13 @@ router.get('/', async (req, res) => {
       pool.query('SELECT COUNT(*) as count FROM lessons'),
     ]);
     res.json({
-      total_users: +users.rows[0].count || 1250,
+      total_users: +users.rows[0].count || 0,
       total_courses: +courses.rows[0].count || 15,
-      total_videos: +lessons.rows[0].count || 340,
+      total_videos: +lessons.rows[0].count || 0,
       rating: 4.9,
     });
   } catch {
-    res.json({ total_users: 1250, total_courses: 15, total_videos: 340, rating: 4.9 });
+    res.json({ total_users: 0, total_courses: 15, total_videos: 0, rating: 4.9 });
   }
 });
 
