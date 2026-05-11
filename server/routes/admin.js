@@ -231,6 +231,30 @@ router.post('/courses', iconUpload.single('icon'), async (req, res) => {
   }
 });
 
+router.put('/courses/:id', iconUpload.single('icon'), async (req, res) => {
+  const { title, slug, description, order_num } = req.body;
+  try {
+    let iconUrl = undefined;
+    if (req.file) {
+      iconUrl = '/uploads/icons/' + req.file.filename;
+    }
+    if (iconUrl) {
+      await pool.query(
+        'UPDATE courses SET title=$1, slug=$2, description=$3, order_num=$4, icon=$5 WHERE id=$6',
+        [title, slug, description, order_num || 0, iconUrl, req.params.id]
+      );
+    } else {
+      await pool.query(
+        'UPDATE courses SET title=$1, slug=$2, description=$3, order_num=$4 WHERE id=$5',
+        [title, slug, description, order_num || 0, req.params.id]
+      );
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 router.delete('/courses/:id', async (req, res) => {
   try {
     // Icon faylni ham o'chirish

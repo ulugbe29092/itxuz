@@ -98,15 +98,15 @@ function CourseSlider() {
       <div style={{ overflow: 'hidden' }}>
         <div style={{
           display: 'flex', gap: '1rem',
-          transform: `translateX(calc(-${idx * (100 / visible)}% - ${idx * 16 / visible}px))`,
+          transform: `translateX(calc(-${idx * 20}% - ${idx * 1}rem))`,
           transition: 'transform 0.5s cubic-bezier(.4,0,.2,1)',
-          width: `${(total / visible) * 100}%`
+          width: `${total * 20}%`
         }}>
           {COURSES.map((c, i) => {
             const logo = getCourseLogo(c.slug)
             return (
               <div key={i} style={{
-                flex: `0 0 calc(${100 / total}% - ${(total - 1) * 16 / total}px)`,
+                flex: `0 0 calc(20% - 0.8rem)`,
                 background: '#fff', border: '1.5px solid #e5e7eb',
                 borderRadius: 16, padding: '1.4rem 1rem',
                 textAlign: 'center', transition: 'all 0.3s', cursor: 'pointer',
@@ -269,7 +269,6 @@ export default function Home() {
               { Icon: BookOpen, val: 15, label: 'Kurslar', color: '#8b5cf6', suffix: '+' },
               { Icon: Video, val: stats.total_videos || 300, label: 'Video darslar', color: '#06b6d4', suffix: '+' },
               { Icon: Star, val: 49, label: 'Reyting', color: '#f59e0b', decimal: true, suffix: '' },
-              { Icon: Award, val: 500, label: 'Sertifikatlar', color: '#10b981', suffix: '+' },
             ].map((s, i) => (
               <div key={i} className="h-stat-card">
                 <div style={{ width: 52, height: 52, borderRadius: 14, background: s.color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.8rem' }}>
@@ -316,12 +315,12 @@ export default function Home() {
           </div>
           <div className="h-features-grid">
             {[
-              { Icon: Globe, color: '#3b82f6', bg: '#eff6ff', title: 'Web Dasturlash', desc: 'HTML, CSS, JavaScript, React, Vue.js, Node.js — zamonaviy web ilovalar yaratishni o\'rganing. Frontend va backend texnologiyalarini birgalikda o\'zlashtirasiz.' },
-              { Icon: Code2, color: '#8b5cf6', bg: '#f5f3ff', title: 'Backend & Python', desc: 'Python, Django, FastAPI, PostgreSQL, MongoDB — server tomonida dasturlash va ma\'lumotlar bazasi bilan ishlashni o\'rganing.' },
+              { Icon: Globe, color: '#3b82f6', bg: '#eff6ff', title: 'Web Dasturlash', desc: 'HTML, CSS, JavaScript, React, Vue.js, Node.js ï¿½ zamonaviy web ilovalar yaratishni o\'rganing. Frontend va backend texnologiyalarini birgalikda o\'zlashtirasiz.' },
+              { Icon: Code2, color: '#8b5cf6', bg: '#f5f3ff', title: 'Backend & Python', desc: 'Python, Django, FastAPI, PostgreSQL, MongoDB ï¿½ server tomonida dasturlash va ma\'lumotlar bazasi bilan ishlashni o\'rganing.' },
               { Icon: Smartphone, color: '#06b6d4', bg: '#ecfeff', title: 'Mobil Ilovalar', desc: 'Flutter & Dart bilan iOS va Android uchun bir vaqtda mobil ilovalar yarating. Google Play va App Store ga chiqaring.' },
               { Icon: Brain, color: '#10b981', bg: '#f0fdf4', title: 'AI & Machine Learning', desc: 'Sun\'iy intellekt, neural tarmoqlar, Python bilan ML modellarini yarating. TensorFlow va scikit-learn kutubxonalarini o\'rganing.' },
               { Icon: Lock, color: '#ef4444', bg: '#fef2f2', title: 'Cybersecurity', desc: 'Axborot xavfsizligi asoslari, etik hacking, penetration testing va himoya usullarini professional darajada o\'rganing.' },
-              { Icon: Layers, color: '#f59e0b', bg: '#fffbeb', title: 'DevOps & Cloud', desc: 'Docker, Kubernetes, CI/CD, Linux, Git — zamonaviy DevOps amaliyotlari va cloud texnologiyalarini o\'rganing.' },
+              { Icon: Layers, color: '#f59e0b', bg: '#fffbeb', title: 'DevOps & Cloud', desc: 'Docker, Kubernetes, CI/CD, Linux, Git ï¿½ zamonaviy DevOps amaliyotlari va cloud texnologiyalarini o\'rganing.' },
             ].map((f, i) => (
               <div key={i} className="h-feature-card"
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = `0 16px 48px ${f.color}18`; e.currentTarget.style.borderColor = f.color + '40' }}
@@ -550,7 +549,7 @@ export default function Home() {
             ))}
           </div>
           <div style={{ borderTop: '1px solid #1f2937', paddingTop: '1.5rem', marginTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#6b7280', fontSize: '.8rem', flexWrap: 'wrap', gap: '.5rem' }}>
-            <span>© {new Date().getFullYear()} ITX Platform. Barcha huquqlar himoyalangan.</span>
+            <span>ï¿½ {new Date().getFullYear()} ITX Platform. Barcha huquqlar himoyalangan.</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '.3rem' }}>
               Made with <Heart size={14} color="#ef4444" fill="#ef4444" /> by Valiyev Ulug'bek
             </span>
@@ -572,7 +571,7 @@ export default function Home() {
 
         /* Layout */
         .h-hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
-        .h-stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1.5rem}
+        .h-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
         .h-stat-card{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:16px;padding:1.8rem;text-align:center;transition:all .3s}
         .h-stat-card:hover{transform:translateY(-4px);border-color:#3b82f6;box-shadow:0 12px 32px rgba(59,130,246,0.1)}
         .h-features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
@@ -588,7 +587,7 @@ export default function Home() {
           .h-adv-grid{grid-template-columns:repeat(3,1fr)}
           .h-pricing-grid{grid-template-columns:repeat(2,1fr)}
           .h-footer-grid{grid-template-columns:1fr 1fr;gap:2rem}
-          .h-stats-grid{grid-template-columns:repeat(3,1fr)}
+          .h-stats-grid{grid-template-columns:repeat(2,1fr)}
         }
         @media(max-width:1024px){
           .h-hero-grid{grid-template-columns:1fr;text-align:center;gap:3rem}
