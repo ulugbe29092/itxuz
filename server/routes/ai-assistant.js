@@ -166,20 +166,17 @@ router.post('/generate-quiz-auto', adminMiddleware, async (req, res) => {
     if (videoUrl) {
       const ytMatch = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/)
       if (ytMatch) {
-        youtubeInfo = `\nYouTube video ID: ${ytMatch[1]} (https://www.youtube.com/watch?v=${ytMatch[1]})`
+        youtubeInfo = `\nYouTube video: https://www.youtube.com/watch?v=${ytMatch[1]}`
       }
     }
 
-    // Tavsif bo'lsa undan foydalanish
-    const descriptionInfo = lessonDescription
-      ? `\nDars tavsifi: "${lessonDescription}"`
-      : ''
+    const descPart = lessonDescription ? `\nDars tavsifi: "${lessonDescription}"` : ''
 
     const prompt = `Sen professional IT o'qituvchisan. Quyidagi dars uchun ${count} ta test savol yoz:
 
 DARS MA'LUMOTLARI:
 - Kurs: "${courseTitle || 'IT kursi'}"
-- Dars nomi: "${lessonTitle}"${descriptionInfo}${youtubeInfo}
+- Dars nomi: "${lessonTitle}"${descPart}${youtubeInfo}
 
 SAVOL TALABLARI:
 - O'zbek tilida, aniq va tushunarli
@@ -198,7 +195,14 @@ FAQAT JSON array qaytaring (boshqa hech qanday matn yo'q):
   }
 ]`
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-1.5-flash',
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 8192,
+      }
+    })
+
     const result = await model.generateContent(prompt)
     const response = await result.response
     let text = response.text()
@@ -211,19 +215,35 @@ FAQAT JSON array qaytaring (boshqa hech qanday matn yo'q):
       text = text.substring(jsonStart, jsonEnd + 1)
     }
 
-    const questions = JSON.parse(text)
+    let questions
+    try {
+      questions = JSON.parse(text)
+    } catch {
+      // JSON parse xatosi bo'lsa, qayta urinish
+      throw new Error('AI noto\'g\'ri format qaytardi. Qayta urinib ko\'ring.')
+    }
+
+    if (!Array.isArray(questions) || questions.length === 0) {
+      throw new Error('AI bo\'sh javob qaytardi.')
+    }
+
+    // Har bir savolni validatsiya qilish
+    const validQuestions = questions.filter(q =>
+      q.question && Array.isArray(q.options) && q.options.length === 4 &&
+      typeof q.correctIndex === 'number' && q.correctIndex >= 0 && q.correctIndex <= 3
+    )
 
     res.json({
       success: true,
-      questions,
-      count: questions.length,
+      questions: validQuestions,
+      count: validQuestions.length,
       usedDescription: !!lessonDescription,
       usedVideo: !!youtubeInfo
     })
 
   } catch (error) {
     console.error('Auto quiz generation error:', error)
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Avtomatik quiz yaratishda xatolik',
       details: error.message,
       questions: []

@@ -62,15 +62,25 @@ router.get('/:id/can-retake', authMiddleware, async (req, res) => {
 // GET /api/quiz/:id/check-blocked - Bloklangan yoki yo'qligini tekshirish (UCHINCHI)
 router.get('/:id/check-blocked', authMiddleware, async (req, res) => {
   try {
-    // Pending so'rovlar bormi tekshirish
-    const result = await pool.query(
-      `SELECT * FROM quiz_retake_requests
+    // Pending so'rov bor va approved yo'q bo'lsa — bloklangan
+    const pendingResult = await pool.query(
+      `SELECT id FROM quiz_retake_requests
        WHERE user_id=$1 AND quiz_id=$2 AND status='pending'
        ORDER BY created_at DESC LIMIT 1`,
       [req.user.id, req.params.id]
     );
 
-    res.json({ isBlocked: result.rows.length > 0 });
+    // Approved so'rov bor bo'lsa — blok olib tashlangan
+    const approvedResult = await pool.query(
+      `SELECT id FROM quiz_retake_requests
+       WHERE user_id=$1 AND quiz_id=$2 AND status='approved'
+       ORDER BY created_at DESC LIMIT 1`,
+      [req.user.id, req.params.id]
+    );
+
+    const isBlocked = pendingResult.rows.length > 0 && approvedResult.rows.length === 0;
+
+    res.json({ isBlocked });
   } catch (err) {
     console.error('Check blocked error:', err.message);
     res.status(500).json({ error: err.message });

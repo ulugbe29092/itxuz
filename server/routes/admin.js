@@ -464,7 +464,9 @@ router.post('/quizzes', async (req, res) => {
       'INSERT INTO quizzes (lesson_id,title,pass_percentage) VALUES ($1,$2,$3) RETURNING *',
       [lesson_id, title, pass_percentage || 70]
     );
-    res.json({ success: true, quiz: result.rows[0] });
+    const quiz = result.rows[0];
+    // Har ikki formatda ham qaytarish
+    res.json({ success: true, quiz, id: quiz.id, quizId: quiz.id });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

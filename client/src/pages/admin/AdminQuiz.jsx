@@ -37,22 +37,14 @@ export default function AdminQuiz() {
     if (!lesson) return toast.error('Dars topilmadi')
 
     setAiLoading(true)
-    setAiProgress('AI dars mavzusini tahlil qilmoqda...')
+    setAiProgress('Dars ma\'lumotlari tayyorlanmoqda...')
 
     try {
-      // 1. Quiz yaratish
-      setAiProgress(`"${lesson.title}" uchun quiz yaratilmoqda...`)
-      const quizRes = await api.post('/admin/quizzes', {
-        lesson_id: aiForm.lesson_id,
-        title: `${lesson.title} — AI Test`,
-        pass_percentage: 70
-      })
-      const quizId = quizRes.data.quiz?.id || quizRes.data.id
+      // 1. AI savollar generatsiya — avval savollarni olamiz
+      setAiProgress(`🤖 Gemini AI ${aiForm.count} ta savol yozmoqda... (30-60 sekund)`)
 
-      // 2. AI savollar generatsiya — dars tavsifi va video URL bilan
-      setAiProgress(`🤖 Gemini AI ${aiForm.count} ta savol yozmoqda...`)
       const aiRes = await api.post('/ai-assistant/generate-quiz-auto', {
-        courseTitle: lesson.course_title,
+        courseTitle: lesson.course_title || '',
         lessonTitle: lesson.title,
         lessonDescription: lesson.description || '',
         videoUrl: lesson.video_url || '',
@@ -60,39 +52,68 @@ export default function AdminQuiz() {
       })
 
       const questions = aiRes.data.questions || []
-      if (!questions.length) throw new Error('AI savol qaytarmadi')
+      if (!questions.length) throw new Error('AI savol qaytarmadi. Qayta urinib ko\'ring.')
 
-      // Qaysi ma'lumotlar ishlatilganini ko'rsatish
-      const usedSources = []
-      if (lesson.description) usedSources.push('tavsif')
-      if (lesson.video_url) usedSources.push('video URL')
-      const sourceText = usedSources.length ? ` (${usedSources.join(' + ')} asosida)` : ''
+      setAiProgress(`✅ ${questions.length} ta savol yaratildi. Quiz saqlanmoqda...`)
+
+      // 2. Quiz yaratish
+      const quizRes = await api.post('/admin/quizzes', {
+        lesson_id: Number(aiForm.lesson_id),
+        title: `${lesson.title} — AI Test`,
+        pass_percentage: 70
+      })
+
+      // quiz ID ni to'g'ri olish (server turli formatda qaytarishi mumkin)
+      const quizId = quizRes.data?.quiz?.id
+        || quizRes.data?.id
+        || quizRes.data?.quizId
+
+      if (!quizId) throw new Error('Quiz ID olinmadi. Server javobini tekshiring.')
 
       // 3. Savollarni bazaga saqlash
       setAiProgress(`💾 ${questions.length} ta savol saqlanmoqda...`)
       let saved = 0
+      let failed = 0
+
       for (const q of questions) {
         try {
           await api.post(`/admin/quizzes/${quizId}/questions`, {
             question_text: q.question,
             options: q.options,
-            correct_option: q.correctIndex ?? 0
+            correct_option: Number(q.correctIndex ?? 0)
           })
           saved++
-          if (saved % 5 === 0) {
+          if (saved % 5 === 0 || saved === questions.length) {
             setAiProgress(`💾 ${saved}/${questions.length} savol saqlandi...`)
           }
-        } catch { /* bitta savol xato bo'lsa davom et */ }
+        } catch (qErr) {
+          failed++
+          console.error('Savol saqlash xatosi:', qErr.message)
+        }
       }
 
-      setAiProgress(`✅ Tayyor! ${saved} ta savol yaratildi${sourceText}`)
+      // Qaysi ma'lumotlar ishlatilganini ko'rsatish
+      const usedSources = ['dars nomi']
+      if (lesson.description) usedSources.push('tavsif')
+      if (lesson.video_url) usedSources.push('video URL')
+
+      const msg = failed > 0
+        ? `⚠️ ${saved} ta saqlandi, ${failed} ta xato`
+        : `✅ ${saved} ta savol yaratildi (${usedSources.join(' + ')} asosida)`
+
+      setAiProgress(msg)
       toast.success(`🎉 AI ${saved} ta test savol yaratdi!`)
       setAiForm({ lesson_id: '', count: 30 })
       load()
-      setTimeout(() => setAiProgress(''), 3000)
+      setTimeout(() => setAiProgress(''), 4000)
     } catch (err) {
-      toast.error(err.response?.data?.error || err.message || 'AI xatolik berdi')
-      setAiProgress('')
+      const errMsg = err.response?.data?.error
+        || err.response?.data?.details
+        || err.message
+        || 'Noma\'lum xatolik'
+      toast.error(`Xatolik: ${errMsg}`)
+      setAiProgress(`❌ Xatolik: ${errMsg}`)
+      console.error('AI quiz error:', err)
     } finally {
       setAiLoading(false)
     }
