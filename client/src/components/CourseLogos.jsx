@@ -188,11 +188,13 @@ const logos = {
  * Kurs slug bo'yicha logo qaytaradi
  * @param {string} slug - kurs slug
  * @param {number} size - icon o'lchami (default 32)
- * @param {string} iconUrl - server icon URL (agar mavjud bo'lsa)
+ * @param {string} iconUrl - server icon URL (agar mavjud bo'lsa, faqat haqiqiy URL bo'lsa ishlatiladi)
  */
 export function getCourseLogo(slug, size = 32, iconUrl = null) {
-  // Agar server icon mavjud bo'lsa, uni ishlatish
-  if (iconUrl) {
+  // Faqat haqiqiy URL bo'lsa (http yoki / bilan boshlanuvchi) ishlatish
+  // Emoji yoki oddiy matn bo'lsa e'tiborsiz qoldirish
+  const isRealUrl = iconUrl && (iconUrl.startsWith('http') || iconUrl.startsWith('/'))
+  if (isRealUrl) {
     return {
       color: '#6366f1',
       bg: '#6366f118',

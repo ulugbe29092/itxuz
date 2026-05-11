@@ -8,6 +8,7 @@ import {
 import api from '../api/axios'
 import useAuthStore from '../store/authStore'
 import { getCourseLogo } from '../components/CourseLogos'
+import heroImg from '../assets/hero.png'
 
 const COURSES = [
   { slug: 'html-css',         title: 'HTML & CSS',       desc: 'Web sahifalar yaratishning asosi' },
@@ -206,26 +207,36 @@ export default function Home() {
                 ))}
               </div>
             </div>
-            {/* Code window */}
+            {/* Hero image */}
             <div className="fade-up hero-code-wrap" style={{ animationDelay: '.1s' }}>
-              <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', boxShadow: 'var(--shadow)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', padding: '.8rem 1rem', background: 'var(--card2)', borderBottom: '1px solid var(--border)' }}>
-                  <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#ef4444', display: 'block' }} />
-                  <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#f59e0b', display: 'block' }} />
-                  <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#22c55e', display: 'block' }} />
-                  <span style={{ marginLeft: '.5rem', fontSize: '.8rem', color: 'var(--text-muted)' }}>main.js</span>
+              <div style={{ position: 'relative' }}>
+                {/* Glow effect */}
+                <div style={{ position: 'absolute', inset: -2, borderRadius: 'var(--radius-lg)', background: 'var(--gradient)', opacity: 0.3, filter: 'blur(20px)', zIndex: 0 }} />
+                <img
+                  src={heroImg}
+                  alt="ITX Platform"
+                  style={{
+                    position: 'relative', zIndex: 1,
+                    width: '100%', borderRadius: 'var(--radius-lg)',
+                    border: '1px solid rgba(99,102,241,0.3)',
+                    boxShadow: '0 24px 64px rgba(99,102,241,0.25)',
+                    display: 'block'
+                  }}
+                />
+                {/* Floating badge */}
+                <div style={{ position: 'absolute', bottom: 24, left: 24, zIndex: 2, background: 'rgba(15,15,26,0.9)', backdropFilter: 'blur(12px)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 12, padding: '0.7rem 1rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <GraduationCap size={18} color="#fff" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>O'quvchilar soni</div>
+                    <div style={{ fontSize: '1rem', fontWeight: 800, background: 'var(--gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>1,250+</div>
+                  </div>
                 </div>
-                <div style={{ padding: '1.5rem', fontFamily: 'Courier New,monospace', fontSize: '.9rem', lineHeight: 1.8 }}>
-                  <div><span style={{color:'#c084fc'}}>const</span> <span style={{color:'#60a5fa'}}>itx</span> = {'{'}</div>
-                  <div style={{paddingLeft:'1.5rem'}}><span style={{color:'#34d399'}}>platform</span>: <span style={{color:'#fbbf24'}}>"ITX"</span>,</div>
-                  <div style={{paddingLeft:'1.5rem'}}><span style={{color:'#34d399'}}>courses</span>: <span style={{color:'#f87171'}}>{stats.total_courses}</span>,</div>
-                  <div style={{paddingLeft:'1.5rem'}}><span style={{color:'#34d399'}}>students</span>: <span style={{color:'#f87171'}}>{stats.total_users.toLocaleString()}</span>,</div>
-                  <div style={{paddingLeft:'1.5rem'}}><span style={{color:'#34d399'}}>rating</span>: <span style={{color:'#f87171'}}>{stats.rating}</span>,</div>
-                  <div style={{paddingLeft:'1.5rem'}}><span style={{color:'#60a5fa'}}>start</span>() {'{'}</div>
-                  <div style={{paddingLeft:'3rem'}}><span style={{color:'#c084fc'}}>return</span> <span style={{color:'#fbbf24'}}>"O'qishni boshlang!"</span>;</div>
-                  <div style={{paddingLeft:'1.5rem'}}>{'}'}</div>
-                  <div>{'};'}</div>
-                  <div style={{color:'var(--primary)',animation:'blink 1s infinite'}}>▌</div>
+                {/* Floating badge 2 */}
+                <div style={{ position: 'absolute', top: 24, right: 24, zIndex: 2, background: 'rgba(15,15,26,0.9)', backdropFilter: 'blur(12px)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 12, padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <CheckCircle size={16} color="#22c55e" />
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#22c55e' }}>15+ Kurs</span>
                 </div>
               </div>
             </div>
