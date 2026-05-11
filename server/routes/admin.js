@@ -298,24 +298,31 @@ router.post('/lessons', videoUpload.single('video_file'), async (req, res) => {
       const { GoogleGenerativeAI } = require('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
       const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-      const prompt = `"${courseTitle}" kursi bo'yicha "${title}" darsiga 30 ta test savolini yarating.
 
-Savollar:
+      // Dars tavsifi va video URL ni prompt ga qo'shish
+      const descPart = description ? `\n- Dars tavsifi: "${description}"` : '';
+      const videoPart = finalVideoType === 'youtube' && finalVideoUrl
+        ? `\n- YouTube video: ${finalVideoUrl}` : '';
+
+      const prompt = `Sen professional IT o'qituvchisan. Quyidagi dars uchun 30 ta test savol yoz:
+
+DARS MA'LUMOTLARI:
+- Kurs: "${courseTitle}"
+- Dars nomi: "${title}"${descPart}${videoPart}
+
+SAVOL TALABLARI:
 - O'zbek tilida, aniq va tushunarli
+- FAQAT dars nomi va tavsifidagi mavzularga oid savollar
+- Har xil qiyinlik: oson (30%), o'rta (50%), qiyin (20%)
 - Amaliy va nazariy bilimlarni tekshiruvchi
-- Har xil qiyinlik darajasida (oson, o'rta, qiyin)
-- Dars mavzusiga to'liq mos
+- Har bir savolda 4 ta variant, faqat 1 tasi to'g'ri
+- Variantlar bir-biridan aniq farq qilsin
 
-Har bir savol uchun:
-- Savol matni
-- 4 ta javob varianti
-- To'g'ri javob indeksi (0-3)
-
-Format (faqat JSON array, boshqa matn yo'q):
+FAQAT JSON array qaytaring (boshqa hech qanday matn yo'q):
 [
   {
     "question": "Savol matni?",
-    "options": ["Variant 1", "Variant 2", "Variant 3", "Variant 4"],
+    "options": ["Variant A", "Variant B", "Variant C", "Variant D"],
     "correctIndex": 1
   }
 ]`;

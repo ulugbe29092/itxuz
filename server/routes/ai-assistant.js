@@ -153,24 +153,43 @@ Faqat JSON formatda javob bering, boshqa matn yo'q.`
 // Avtomatik quiz generatsiya (dars qo'shilganda yoki admin paneldan)
 router.post('/generate-quiz-auto', adminMiddleware, async (req, res) => {
   try {
-    const { courseTitle, lessonTitle, questionCount } = req.body
+    const { courseTitle, lessonTitle, lessonDescription, videoUrl, questionCount } = req.body
 
-    if (!courseTitle || !lessonTitle) {
-      return res.status(400).json({ error: 'Kurs va dars nomi talab qilinadi' })
+    if (!lessonTitle) {
+      return res.status(400).json({ error: 'Dars nomi talab qilinadi' })
     }
 
     const count = Math.min(parseInt(questionCount) || 30, 50)
 
-    const prompt = `"${courseTitle}" kursi, "${lessonTitle}" darsi bo'yicha ${count} ta test savol yozing.
+    // YouTube video ID ni ajratib olish
+    let youtubeInfo = ''
+    if (videoUrl) {
+      const ytMatch = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/)
+      if (ytMatch) {
+        youtubeInfo = `\nYouTube video ID: ${ytMatch[1]} (https://www.youtube.com/watch?v=${ytMatch[1]})`
+      }
+    }
 
-QOIDALAR:
+    // Tavsif bo'lsa undan foydalanish
+    const descriptionInfo = lessonDescription
+      ? `\nDars tavsifi: "${lessonDescription}"`
+      : ''
+
+    const prompt = `Sen professional IT o'qituvchisan. Quyidagi dars uchun ${count} ta test savol yoz:
+
+DARS MA'LUMOTLARI:
+- Kurs: "${courseTitle || 'IT kursi'}"
+- Dars nomi: "${lessonTitle}"${descriptionInfo}${youtubeInfo}
+
+SAVOL TALABLARI:
 - O'zbek tilida, aniq va tushunarli
-- Dars mavzusiga to'liq mos
+- FAQAT dars nomi va tavsifidagi mavzularga oid
 - Har xil qiyinlik: oson (30%), o'rta (50%), qiyin (20%)
 - Amaliy va nazariy bilimlarni tekshiruvchi
 - Har bir savolda 4 ta variant, faqat 1 tasi to'g'ri
+- Variantlar bir-biridan aniq farq qilsin
 
-FAQAT JSON array qaytaring (boshqa matn yo'q):
+FAQAT JSON array qaytaring (boshqa hech qanday matn yo'q):
 [
   {
     "question": "Savol matni?",
@@ -197,7 +216,9 @@ FAQAT JSON array qaytaring (boshqa matn yo'q):
     res.json({
       success: true,
       questions,
-      count: questions.length
+      count: questions.length,
+      usedDescription: !!lessonDescription,
+      usedVideo: !!youtubeInfo
     })
 
   } catch (error) {

@@ -49,16 +49,24 @@ export default function AdminQuiz() {
       })
       const quizId = quizRes.data.quiz?.id || quizRes.data.id
 
-      // 2. AI savollar generatsiya
+      // 2. AI savollar generatsiya — dars tavsifi va video URL bilan
       setAiProgress(`🤖 Gemini AI ${aiForm.count} ta savol yozmoqda...`)
       const aiRes = await api.post('/ai-assistant/generate-quiz-auto', {
         courseTitle: lesson.course_title,
         lessonTitle: lesson.title,
+        lessonDescription: lesson.description || '',
+        videoUrl: lesson.video_url || '',
         questionCount: Number(aiForm.count)
       })
 
       const questions = aiRes.data.questions || []
       if (!questions.length) throw new Error('AI savol qaytarmadi')
+
+      // Qaysi ma'lumotlar ishlatilganini ko'rsatish
+      const usedSources = []
+      if (lesson.description) usedSources.push('tavsif')
+      if (lesson.video_url) usedSources.push('video URL')
+      const sourceText = usedSources.length ? ` (${usedSources.join(' + ')} asosida)` : ''
 
       // 3. Savollarni bazaga saqlash
       setAiProgress(`💾 ${questions.length} ta savol saqlanmoqda...`)
@@ -77,7 +85,7 @@ export default function AdminQuiz() {
         } catch { /* bitta savol xato bo'lsa davom et */ }
       }
 
-      setAiProgress(`✅ Tayyor! ${saved} ta savol yaratildi`)
+      setAiProgress(`✅ Tayyor! ${saved} ta savol yaratildi${sourceText}`)
       toast.success(`🎉 AI ${saved} ta test savol yaratdi!`)
       setAiForm({ lesson_id: '', count: 30 })
       load()
@@ -202,6 +210,46 @@ export default function AdminQuiz() {
                 </select>
               </div>
             </div>
+
+            {/* Tanlangan dars preview */}
+            {aiForm.lesson_id && (() => {
+              const sel = lessons.find(l => String(l.id) === String(aiForm.lesson_id))
+              if (!sel) return null
+              return (
+                <div style={{ marginTop: '1rem', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '1rem', fontSize: '0.82rem' }}>
+                  <div style={{ fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    📋 AI quyidagi ma'lumotlar asosida savol tuzadi:
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <span style={{ color: 'var(--text-muted)', minWidth: 80 }}>Kurs:</span>
+                      <span style={{ fontWeight: 600 }}>{sel.course_title}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <span style={{ color: 'var(--text-muted)', minWidth: 80 }}>Dars nomi:</span>
+                      <span style={{ fontWeight: 600 }}>{sel.title}</span>
+                    </div>
+                    {sel.description && (
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <span style={{ color: 'var(--text-muted)', minWidth: 80 }}>Tavsif:</span>
+                        <span style={{ color: '#22c55e' }}>✓ {sel.description.substring(0, 100)}{sel.description.length > 100 ? '...' : ''}</span>
+                      </div>
+                    )}
+                    {sel.video_url && (
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <span style={{ color: 'var(--text-muted)', minWidth: 80 }}>Video:</span>
+                        <span style={{ color: '#22c55e' }}>✓ {sel.video_type === 'youtube' ? 'YouTube video URL' : 'Local video'} mavjud</span>
+                      </div>
+                    )}
+                    {!sel.description && !sel.video_url && (
+                      <div style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        ⚠️ Tavsif va video yo'q — faqat dars nomi asosida savol tuziladi
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })()}
 
             <button
               type="submit"
