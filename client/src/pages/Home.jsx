@@ -202,9 +202,9 @@ export default function Home() {
               </div>
               <div style={{ display: 'flex', gap: '2.5rem', flexWrap: 'wrap' }}>
                 {[
-                  { val: stats.total_users || 1250, label: "O'quvchilar", suffix: '+' },
+                  { val: stats.total_users, label: "O'quvchilar", suffix: stats.total_users > 0 ? '+' : '' },
                   { val: 15, label: 'Kurslar', suffix: '+' },
-                  { val: stats.total_videos || 300, label: 'Video darslar', suffix: '+' },
+                  { val: stats.total_videos, label: 'Video darslar', suffix: stats.total_videos > 0 ? '+' : '' },
                 ].map((s, i) => (
                   <div key={i}>
                     <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#111827' }}>
@@ -222,7 +222,7 @@ export default function Home() {
                 <div style={{ position: 'absolute', inset: 30, borderRadius: '50%', border: '1.5px solid rgba(139,92,246,0.12)', animation: 'hRing 4s ease-in-out infinite 1s' }} />
                 <div style={{ position: 'absolute', inset: 60, borderRadius: '50%', border: '1.5px solid rgba(6,182,212,0.1)', animation: 'hRing 4s ease-in-out infinite 2s' }} />
                 {/* Center card — wrapper animatsiya uchun, ichki div pozitsiya uchun */}
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 10, animation: 'hFloat 4s ease-in-out infinite' }}>
+                <div style={{ position: 'absolute', top: '50%', left: '50%', zIndex: 10, animation: 'hFloatCenter 4s ease-in-out infinite' }}>
                   <div style={{ width: 140, height: 140, borderRadius: 36, background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 20px 60px rgba(59,130,246,0.4), 0 0 0 8px rgba(59,130,246,0.08)' }}>
                     <GraduationCap size={44} color="#fff" />
                     <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#fff', marginTop: 6, letterSpacing: '-0.5px' }}>ITX</div>
@@ -247,7 +247,7 @@ export default function Home() {
                   )
                 })}
                 <div style={{ position: 'absolute', bottom: 10, left: -20, background: '#fff', borderRadius: 14, padding: '0.7rem 1rem', boxShadow: '0 8px 32px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', animation: 'hFloat 4s ease-in-out infinite 0.5s', zIndex: 15 }}>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#3b82f6' }}>1,250+</div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#3b82f6' }}>{stats.total_users > 0 ? stats.total_users.toLocaleString() + '+' : '0'}</div>
                   <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>O'quvchilar</div>
                 </div>
                 <div style={{ position: 'absolute', top: 20, right: -30, background: '#fff', borderRadius: 14, padding: '0.7rem 1rem', boxShadow: '0 8px 32px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', animation: 'hFloat 4s ease-in-out infinite 1.5s', zIndex: 15 }}>
@@ -268,9 +268,9 @@ export default function Home() {
         <div className="container">
           <div className="h-stats-grid">
             {[
-              { Icon: Users, val: stats.total_users || 1250, label: "O'quvchilar", color: '#3b82f6', suffix: '+' },
+              { Icon: Users, val: stats.total_users, label: "O'quvchilar", color: '#3b82f6', suffix: stats.total_users > 0 ? '+' : '' },
               { Icon: BookOpen, val: 15, label: 'Kurslar', color: '#8b5cf6', suffix: '+' },
-              { Icon: Video, val: stats.total_videos || 300, label: 'Video darslar', color: '#06b6d4', suffix: '+' },
+              { Icon: Video, val: stats.total_videos, label: 'Video darslar', color: '#06b6d4', suffix: stats.total_videos > 0 ? '+' : '' },
               { Icon: Star, val: 49, label: 'Reyting', color: '#f59e0b', decimal: true, suffix: '' },
             ].map((s, i) => (
               <div key={i} className="h-stat-card">
@@ -562,6 +562,7 @@ export default function Home() {
 
       <style>{`
         @keyframes hFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+        @keyframes hFloatCenter{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-10px)}}
         @keyframes hRing{0%,100%{opacity:0.15;transform:translate(-50%,-50%) scale(0.97)}50%{opacity:0.35;transform:translate(-50%,-50%) scale(1)}}
         @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
