@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Video, Trash2, Plus, Youtube, HardDrive, Upload, EyeOff, Eye } from 'lucide-react'
+import { Video, Trash2, Plus, Youtube, HardDrive, Upload, EyeOff, Eye, Sparkles, CheckCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../api/axios'
 import Loader from '../../components/Loader'
@@ -11,6 +11,7 @@ export default function AdminLessons() {
   const [videoType, setVideoType] = useState('youtube')
   const [videoFile, setVideoFile] = useState(null)
   const [uploading, setUploading] = useState(false)
+  const [uploadStep, setUploadStep] = useState('') // 'uploading' | 'ai' | 'done'
   const [form, setForm] = useState({
     course_id: '', title: '', description: '',
     video_url: '', order_num: ''
@@ -30,6 +31,7 @@ export default function AdminLessons() {
     if (videoType === 'local' && !videoFile) return toast.error('Video faylni tanlang')
 
     setUploading(true)
+    setUploadStep('uploading')
     try {
       const fd = new FormData()
       fd.append('course_id', form.course_id)
@@ -44,16 +46,20 @@ export default function AdminLessons() {
         fd.append('video_file', videoFile)
       }
 
+      setUploadStep('ai')
       await api.post('/admin/lessons', fd, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
-      toast.success("Dars qo'shildi!")
+      setUploadStep('done')
+      toast.success("Dars qo'shildi! AI 30 ta test savol yaratdi ✨")
       setForm({ course_id: '', title: '', description: '', video_url: '', order_num: '' })
       setVideoFile(null)
       setVideoType('youtube')
+      setTimeout(() => setUploadStep(''), 2000)
       load()
     } catch (err) {
       toast.error(err.response?.data?.error || 'Xatolik')
+      setUploadStep('')
     } finally {
       setUploading(false)
     }
@@ -86,6 +92,9 @@ export default function AdminLessons() {
       <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '1.5rem', marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Plus size={18} /> Yangi dars qo'shish
+          <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', color: 'var(--primary)', padding: '0.25rem 0.7rem', borderRadius: '50px', fontSize: '0.72rem', fontWeight: 600 }}>
+            <Sparkles size={12} /> AI 30 ta test avtomatik yaratadi
+          </span>
         </h2>
         <form onSubmit={add}>
           <div className="form-row">
@@ -160,10 +169,26 @@ export default function AdminLessons() {
 
           <button type="submit" className="btn btn-primary" disabled={uploading}>
             {uploading
-              ? <><span className="spin" style={{ display: 'inline-block', width: 16, height: 16, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%' }} /> Yuklanmoqda...</>
+              ? uploadStep === 'ai'
+                ? <><Sparkles size={16} className="spin" style={{ animationDuration: '1s' }} /> AI 30 ta test yaratmoqda...</>
+                : uploadStep === 'done'
+                  ? <><CheckCircle size={16} /> Tayyor!</>
+                  : <><span className="spin" style={{ display: 'inline-block', width: 16, height: 16, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%' }} /> Yuklanmoqda...</>
               : <><Plus size={16} /> Dars qo'shish</>
             }
           </button>
+
+          {/* AI progress info */}
+          {uploading && (
+            <div style={{ marginTop: '0.8rem', background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 'var(--radius)', padding: '0.8rem 1rem', fontSize: '0.82rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <Sparkles size={14} color="var(--primary)" />
+              <span>
+                {uploadStep === 'uploading' && 'Dars ma\'lumotlari saqlanmoqda...'}
+                {uploadStep === 'ai' && <><strong style={{ color: 'var(--primary)' }}>AI</strong> dars mavzusiga qarab 30 ta test savol yaratmoqda. Bu 15-30 soniya olishi mumkin...</>}
+                {uploadStep === 'done' && <><strong style={{ color: '#22c55e' }}>✓</strong> Dars va 30 ta AI test savoli muvaffaqiyatli yaratildi!</>}
+              </span>
+            </div>
+          )}
         </form>
       </div>
 

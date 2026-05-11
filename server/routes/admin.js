@@ -294,34 +294,64 @@ router.post('/lessons', videoUpload.single('video_file'), async (req, res) => {
       );
       const quizId = quizResult.rows[0].id;
 
-      // AI orqali 30 ta savol generatsiya qilish
-      const axios = require('axios');
-      const aiResponse = await axios.post('http://localhost:5000/api/ai-assistant/generate-quiz', {
-        courseTitle,
-        lessonTitle: title,
-        questionCount: 30
-      }, {
-        timeout: 60000 // 60 soniya
-      });
+      // AI orqali 30 ta savol generatsiya qilish - to'g'ridan-to'g'ri Gemini chaqirish
+      const { GoogleGenerativeAI } = require('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-      if (aiResponse.data.questions && aiResponse.data.questions.length > 0) {
-        // Savollarni bazaga qo'shish
-        for (const q of aiResponse.data.questions) {
-          const qResult = await pool.query(
-            'INSERT INTO quiz_questions (quiz_id,question_text) VALUES ($1,$2) RETURNING id',
-            [quizId, q.question]
+      const prompt = `"${courseTitle}" kursi bo'yicha "${title}" darsiga 30 ta test savolini yarating.
+
+Savollar:
+- O'zbek tilida, aniq va tushunarli
+- Amaliy va nazariy bilimlarni tekshiruvchi
+- Har xil qiyinlik darajasida (oson, o'rta, qiyin)
+- Dars mavzusiga to'liq mos
+
+Har bir savol uchun:
+- Savol matni
+- 4 ta javob varianti
+- To'g'ri javob indeksi (0-3)
+
+Format (faqat JSON array, boshqa matn yo'q):
+[
+  {
+    "question": "Savol matni?",
+    "options": ["Variant 1", "Variant 2", "Variant 3", "Variant 4"],
+    "correctIndex": 1
+  }
+]`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      let text = response.text();
+
+      // JSON ni tozalash
+      text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const jsonStart = text.indexOf('[');
+      const jsonEnd = text.lastIndexOf(']');
+      if (jsonStart !== -1 && jsonEnd !== -1) {
+        text = text.substring(jsonStart, jsonEnd + 1);
+      }
+
+      const questions = JSON.parse(text);
+
+      // Savollarni bazaga qo'shish
+      for (const q of questions) {
+        const qResult = await pool.query(
+          'INSERT INTO quiz_questions (quiz_id,question_text) VALUES ($1,$2) RETURNING id',
+          [quizId, q.question]
+        );
+        const questionId = qResult.rows[0].id;
+
+        for (let i = 0; i < q.options.length; i++) {
+          await pool.query(
+            'INSERT INTO quiz_options (question_id,option_text,is_correct) VALUES ($1,$2,$3)',
+            [questionId, q.options[i], i === q.correctIndex ? 1 : 0]
           );
-          const questionId = qResult.rows[0].id;
-
-          // Variantlarni qo'shish
-          for (let i = 0; i < q.options.length; i++) {
-            await pool.query(
-              'INSERT INTO quiz_options (question_id,option_text,is_correct) VALUES ($1,$2,$3)',
-              [questionId, q.options[i], i === q.correctIndex ? 1 : 0]
-            );
-          }
         }
       }
+
+      console.log(`✅ AI quiz yaratildi: ${questions.length} ta savol, quizId=${quizId}`);
     } catch (aiErr) {
       console.error('AI quiz generation error:', aiErr.message);
       // Quiz yaratilmasa ham dars qo'shiladi
