@@ -76,11 +76,6 @@ export default function Navbar() {
                     {icon} {label}
                   </Link>
                 ))}
-                {user && (
-                  <Link to="/dashboard" style={navLinkStyle(isActive('/dashboard'))}>
-                    <LayoutDashboard size={16} /> Dashboard
-                  </Link>
-                )}
               </>
             )}
           </div>
@@ -152,11 +147,6 @@ export default function Navbar() {
                   {icon} {label}
                 </Link>
               ))}
-              {user && (
-                <Link to="/dashboard" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: 'var(--text-muted)', fontWeight: 500 }}>
-                  <LayoutDashboard size={16} /> Dashboard
-                </Link>
-              )}
             </>
           )}
           {user ? (
