@@ -324,7 +324,14 @@ export default function Home() {
           </div>
           <div className="pricing-grid-4">
             {PLANS.map((p, i) => (
-              <div key={i} style={{ background: 'var(--card)', border: `1px solid ${p.popular ? 'var(--primary)' : p.badge === 'vip' ? '#f59e0b' : 'var(--border)'}`, borderRadius: 'var(--radius-lg)', padding: '2rem', position: 'relative', transition: 'transform .3s', boxShadow: p.popular ? '0 0 30px rgba(99,102,241,.2)' : 'none' }}
+              <div key={i} style={{
+                background: 'var(--card)',
+                border: `1px solid ${p.popular ? 'var(--primary)' : p.badge === 'vip' ? '#f59e0b' : 'var(--border)'}`,
+                borderRadius: 'var(--radius-lg)', padding: '2rem',
+                position: 'relative', transition: 'transform .3s',
+                boxShadow: p.popular ? '0 0 30px rgba(99,102,241,.2)' : 'none',
+                display: 'flex', flexDirection: 'column'
+              }}
                 onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
                 onMouseLeave={e => e.currentTarget.style.transform = ''}
               >
@@ -332,11 +339,11 @@ export default function Home() {
                 <span className={`badge-${p.badge}`}>{p.name}</span>
                 <div style={{ fontSize: '2rem', fontWeight: 800, margin: '.8rem 0 .2rem' }} className="gradient-text">{p.price}</div>
                 <div style={{ fontSize: '.8rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>so'm / {p.dur}</div>
-                <ul style={{ listStyle: 'none', marginBottom: '1.5rem' }}>
+                <ul style={{ listStyle: 'none', marginBottom: '1.5rem', flex: 1 }}>
                   {p.features.map(f => <li key={f} style={{ display: 'flex', alignItems: 'center', gap: '.5rem', padding: '.3rem 0', fontSize: '.85rem' }}><CheckCircle size={14} color="#22c55e" /> {f}</li>)}
                   {p.no.map(f => <li key={f} style={{ display: 'flex', alignItems: 'center', gap: '.5rem', padding: '.3rem 0', fontSize: '.85rem', color: 'var(--text-muted)' }}><XCircle size={14} color="#ef4444" /> {f}</li>)}
                 </ul>
-                <Link to="/pricing" className={`btn ${p.popular || p.badge === 'vip' ? 'btn-primary' : 'btn-outline'} btn-block`} style={{ justifyContent: 'center' }}>Tanlash</Link>
+                <Link to="/pricing" className={`btn ${p.popular || p.badge === 'vip' ? 'btn-primary' : 'btn-outline'} btn-block`} style={{ justifyContent: 'center', marginTop: 'auto' }}>Tanlash</Link>
               </div>
             ))}
           </div>
@@ -499,7 +506,7 @@ export default function Home() {
         /* ===== LAYOUT ===== */
         .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
         .stats-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
-        .pricing-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
+        .pricing-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;align-items:stretch}
         .footer-grid-4{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:3rem;margin-bottom:2rem}
         .testimonials-grid-resp{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
 
