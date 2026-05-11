@@ -150,8 +150,8 @@ Faqat JSON formatda javob bering, boshqa matn yo'q.`
   }
 })
 
-// Avtomatik quiz generatsiya (video yuklanganda)
-router.post('/generate-quiz-auto', async (req, res) => {
+// Avtomatik quiz generatsiya (dars qo'shilganda yoki admin paneldan)
+router.post('/generate-quiz-auto', adminMiddleware, async (req, res) => {
   try {
     const { courseTitle, lessonTitle, questionCount } = req.body
 
@@ -159,41 +159,33 @@ router.post('/generate-quiz-auto', async (req, res) => {
       return res.status(400).json({ error: 'Kurs va dars nomi talab qilinadi' })
     }
 
-    const count = questionCount || 30
+    const count = Math.min(parseInt(questionCount) || 30, 50)
 
-    const prompt = `"${courseTitle}" kursi bo'yicha "${lessonTitle}" darsiga ${count} ta test savolini yarating.
+    const prompt = `"${courseTitle}" kursi, "${lessonTitle}" darsi bo'yicha ${count} ta test savol yozing.
 
-Savollar:
-- O'zbek tilida
-- Aniq va tushunarli
+QOIDALAR:
+- O'zbek tilida, aniq va tushunarli
+- Dars mavzusiga to'liq mos
+- Har xil qiyinlik: oson (30%), o'rta (50%), qiyin (20%)
 - Amaliy va nazariy bilimlarni tekshiruvchi
-- Har xil qiyinlik darajasida (oson, o'rta, qiyin)
+- Har bir savolda 4 ta variant, faqat 1 tasi to'g'ri
 
-Har bir savol uchun:
-- Savol matni
-- 4 ta javob varianti
-- To'g'ri javob indeksi (0-3)
-
-Format (JSON):
+FAQAT JSON array qaytaring (boshqa matn yo'q):
 [
   {
     "question": "Savol matni?",
-    "options": ["Variant 1", "Variant 2", "Variant 3", "Variant 4"],
+    "options": ["Variant A", "Variant B", "Variant C", "Variant D"],
     "correctIndex": 1
   }
-]
+]`
 
-MUHIM: Faqat JSON array qaytaring, boshqa matn yo'q!`
-
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
     const result = await model.generateContent(prompt)
     const response = await result.response
     let text = response.text()
 
     // JSON ni tozalash
     text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-    
-    // Agar matn JSON bilan boshlanmasa, uni topish
     const jsonStart = text.indexOf('[')
     const jsonEnd = text.lastIndexOf(']')
     if (jsonStart !== -1 && jsonEnd !== -1) {
@@ -213,7 +205,7 @@ MUHIM: Faqat JSON array qaytaring, boshqa matn yo'q!`
     res.status(500).json({ 
       error: 'Avtomatik quiz yaratishda xatolik',
       details: error.message,
-      questions: [] // Bo'sh array qaytarish
+      questions: []
     })
   }
 })

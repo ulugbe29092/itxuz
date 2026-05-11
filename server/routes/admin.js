@@ -298,7 +298,6 @@ router.post('/lessons', videoUpload.single('video_file'), async (req, res) => {
       const { GoogleGenerativeAI } = require('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
       const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
       const prompt = `"${courseTitle}" kursi bo'yicha "${title}" darsiga 30 ta test savolini yarating.
 
 Savollar:
@@ -576,6 +575,18 @@ router.post('/retake-requests/:id/reject', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// DELETE /api/admin/quizzes/:id
+router.delete('/quizzes/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM quiz_options WHERE question_id IN (SELECT id FROM quiz_questions WHERE quiz_id=$1)', [req.params.id])
+    await pool.query('DELETE FROM quiz_questions WHERE quiz_id=$1', [req.params.id])
+    await pool.query('DELETE FROM quizzes WHERE id=$1', [req.params.id])
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
 
 // DELETE /api/admin/quiz-violations/:id
 router.delete('/quiz-violations/:id', async (req, res) => {
