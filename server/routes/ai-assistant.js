@@ -151,7 +151,7 @@ Faqat JSON formatda javob bering, boshqa matn yo'q.`
 })
 
 // Avtomatik quiz generatsiya (dars qo'shilganda yoki admin paneldan)
-router.post('/generate-quiz-auto', adminMiddleware, async (req, res) => {
+router.post('/generate-quiz-auto', authMiddleware, async (req, res) => {
   try {
     const { courseTitle, lessonTitle, lessonDescription, videoUrl, questionCount } = req.body
 
@@ -172,7 +172,8 @@ router.post('/generate-quiz-auto', adminMiddleware, async (req, res) => {
 
     const descPart = lessonDescription ? `\nDars tavsifi: "${lessonDescription}"` : ''
 
-    const prompt = `Sen professional IT o'qituvchisan. Quyidagi dars uchun ${count} ta test savol yoz:
+    // Vercel timeout uchun: ko'p so'rov o'rniga bitta katta so'rov
+    const prompt = `Sen professional IT o'qituvchisan. Quyidagi dars uchun AYNAN ${count} ta test savol yoz. Ko'proq yoki kamroq emas, AYNAN ${count} ta.
 
 DARS MA'LUMOTLARI:
 - Kurs: "${courseTitle || 'IT kursi'}"
@@ -182,18 +183,10 @@ SAVOL TALABLARI:
 - O'zbek tilida, aniq va tushunarli
 - FAQAT dars nomi va tavsifidagi mavzularga oid
 - Har xil qiyinlik: oson (30%), o'rta (50%), qiyin (20%)
-- Amaliy va nazariy bilimlarni tekshiruvchi
 - Har bir savolda 4 ta variant, faqat 1 tasi to'g'ri
-- Variantlar bir-biridan aniq farq qilsin
 
-FAQAT JSON array qaytaring (boshqa hech qanday matn yo'q):
-[
-  {
-    "question": "Savol matni?",
-    "options": ["Variant A", "Variant B", "Variant C", "Variant D"],
-    "correctIndex": 1
-  }
-]`
+FAQAT JSON array qaytaring, boshqa hech qanday matn yo'q:
+[{"question":"...","options":["A","B","C","D"],"correctIndex":0}]`
 
     const model = genAI.getGenerativeModel({
       model: 'gemini-1.5-flash',
