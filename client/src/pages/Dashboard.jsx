@@ -27,8 +27,8 @@ function Sidebar({ user }) {
           : <div className="dash-avatar-placeholder">{user.first_name?.[0]?.toUpperCase()}</div>
         }
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-          <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{user.first_name} {user.last_name}</span>
-          <span className={`badge-${user.plan}`} style={{ fontSize: '0.7rem' }}>{user.plan?.toUpperCase()}</span>
+          <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{user.first_name}</span>
+          <span className={`badge-${user.plan}`}>{user.plan?.toUpperCase()}</span>
         </div>
       </div>
       <nav className="dash-nav">
