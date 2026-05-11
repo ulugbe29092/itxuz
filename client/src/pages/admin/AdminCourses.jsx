@@ -160,6 +160,11 @@ export default function AdminCourses() {
             <div className="modal-body">
               <form onSubmit={handleEdit}>
                 <div className="form-group">
+                  <label className="form-label">Kurs ID (o'zgartirish mumkin)</label>
+                  <input className="form-input" type="number" value={editForm.id || editModal.id} onChange={e => setEditForm(f => ({...f, id: e.target.value}))} />
+                  <span className="field-hint">Diqqat: ID o'zgartirilsa bog'liq darslar ham yangilanadi</span>
+                </div>
+                <div className="form-group">
                   <label className="form-label">Kurs nomi</label>
                   <input className="form-input" value={editForm.title} onChange={e => setEditForm(f => ({...f, title: e.target.value}))} required />
                 </div>

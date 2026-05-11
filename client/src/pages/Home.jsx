@@ -82,7 +82,7 @@ function Counter({ target, decimal }) {
 function CourseSlider() {
   const [idx, setIdx] = useState(0)
   const total = COURSES.length
-  const visible = 5
+  const visible = 3
   const maxIdx = total - visible
 
   useEffect(() => {
@@ -93,47 +93,49 @@ function CourseSlider() {
   const prev = () => setIdx(i => Math.max(0, i - 1))
   const next = () => setIdx(i => Math.min(maxIdx, i + 1))
 
+  const pct = 100 / visible
+
   return (
     <div style={{ position: 'relative', padding: '0 2.5rem' }}>
       <div style={{ overflow: 'hidden' }}>
         <div style={{
           display: 'flex', gap: '1rem',
-          transform: `translateX(calc(-${idx * 20}% - ${idx * 1}rem))`,
+          transform: `translateX(calc(-${idx * pct}% - ${idx * 1}rem))`,
           transition: 'transform 0.5s cubic-bezier(.4,0,.2,1)',
-          width: `${total * 20}%`
+          width: `${(total / visible) * 100}%`
         }}>
           {COURSES.map((c, i) => {
             const logo = getCourseLogo(c.slug)
             return (
               <div key={i} style={{
-                flex: `0 0 calc(20% - 0.8rem)`,
+                flex: `0 0 calc(${100 / total}% - ${(total - 1) * 16 / total}px)`,
                 background: '#fff', border: '1.5px solid #e5e7eb',
-                borderRadius: 16, padding: '1.4rem 1rem',
+                borderRadius: 14, padding: '1rem 0.8rem',
                 textAlign: 'center', transition: 'all 0.3s', cursor: 'pointer',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)', minWidth: 0
               }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = logo.color; e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = `0 12px 32px ${logo.color}22` }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = logo.color; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${logo.color}22` }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)' }}
               >
-                <div style={{ width: 56, height: 56, borderRadius: 14, background: logo.bg, border: `1.5px solid ${logo.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.8rem' }}>
-                  {logo.svg}
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: logo.bg, border: `1.5px solid ${logo.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.6rem' }}>
+                  {getCourseLogo(c.slug, 24).svg}
                 </div>
-                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#111827', marginBottom: '0.25rem' }}>{c.title}</div>
-                <div style={{ fontSize: '0.72rem', color: '#9ca3af' }}>{c.desc}</div>
+                <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#111827', marginBottom: '0.2rem' }}>{c.title}</div>
+                <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>{c.desc}</div>
               </div>
             )
           })}
         </div>
       </div>
-      <button onClick={prev} disabled={idx === 0} style={{ position: 'absolute', left: 0, top: '45%', transform: 'translateY(-50%)', width: 38, height: 38, borderRadius: '50%', background: '#fff', border: '1.5px solid #e5e7eb', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', transition: 'all 0.2s', opacity: idx === 0 ? 0.4 : 1 }}>
-        <ChevronLeft size={16} />
+      <button onClick={prev} disabled={idx === 0} style={{ position: 'absolute', left: 0, top: '45%', transform: 'translateY(-50%)', width: 34, height: 34, borderRadius: '50%', background: '#fff', border: '1.5px solid #e5e7eb', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', transition: 'all 0.2s', opacity: idx === 0 ? 0.4 : 1 }}>
+        <ChevronLeft size={14} />
       </button>
-      <button onClick={next} disabled={idx >= maxIdx} style={{ position: 'absolute', right: 0, top: '45%', transform: 'translateY(-50%)', width: 38, height: 38, borderRadius: '50%', background: '#fff', border: '1.5px solid #e5e7eb', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', transition: 'all 0.2s', opacity: idx >= maxIdx ? 0.4 : 1 }}>
-        <ChevronRight size={16} />
+      <button onClick={next} disabled={idx >= maxIdx} style={{ position: 'absolute', right: 0, top: '45%', transform: 'translateY(-50%)', width: 34, height: 34, borderRadius: '50%', background: '#fff', border: '1.5px solid #e5e7eb', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', transition: 'all 0.2s', opacity: idx >= maxIdx ? 0.4 : 1 }}>
+        <ChevronRight size={14} />
       </button>
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '0.4rem', marginTop: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem', marginTop: '1.2rem' }}>
         {Array.from({ length: maxIdx + 1 }).map((_, i) => (
-          <button key={i} onClick={() => setIdx(i)} style={{ width: i === idx ? 24 : 8, height: 8, borderRadius: 4, background: i === idx ? '#3b82f6' : '#d1d5db', border: 'none', cursor: 'pointer', transition: 'all 0.3s', padding: 0 }} />
+          <button key={i} onClick={() => setIdx(i)} style={{ width: i === idx ? 20 : 7, height: 7, borderRadius: 4, background: i === idx ? '#3b82f6' : '#d1d5db', border: 'none', cursor: 'pointer', transition: 'all 0.3s', padding: 0 }} />
         ))}
       </div>
     </div>

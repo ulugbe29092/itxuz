@@ -24,8 +24,12 @@ export default function LessonPage() {
   const [comment, setComment]   = useState({ content: '', rating: 5 })
   const [submitting, setSubmitting] = useState(false)
 
-  // Video progress tracking (faqat ma'lumot uchun)
-  const [videoProgress, setVideoProgress] = useState(0)      // 0-100%
+  // Video progress tracking — MAJBURIY
+  const [videoProgress, setVideoProgress] = useState(0)
+  const [videoDuration, setVideoDuration] = useState(0)
+  const [videoWatched, setVideoWatched] = useState(false) // 90%+ ko'rildi
+  const [quizUnlocked, setQuizUnlocked] = useState(false) // 10 sekund qoldi
+  const [timeLeft, setTimeLeft] = useState(null) // qolgan vaqt
   const videoRef = useRef(null)
   const iframeRef = useRef(null)
 
@@ -44,16 +48,26 @@ export default function LessonPage() {
 
   useEffect(() => { fetchData() }, [fetchData])
 
-  // ===== Local video progress (faqat ma'lumot uchun) =====
+  // ===== Local video progress — MAJBURIY =====
   const handleTimeUpdate = useCallback(() => {
     const v = videoRef.current
     if (!v || !v.duration) return
     const pct = Math.round((v.currentTime / v.duration) * 100)
+    const left = Math.round(v.duration - v.currentTime)
     setVideoProgress(pct)
-  }, [])
+    setVideoDuration(v.duration)
+    setTimeLeft(left)
+    // 10 sekund qolsa quiz ochilsin
+    if (left <= 10 && !quizUnlocked) setQuizUnlocked(true)
+    // 90%+ ko'rilsa watched
+    if (pct >= 90 && !videoWatched) setVideoWatched(true)
+  }, [quizUnlocked, videoWatched])
 
   const handleVideoEnded = useCallback(() => {
     setVideoProgress(100)
+    setVideoWatched(true)
+    setQuizUnlocked(true)
+    setTimeLeft(0)
   }, [])
 
   // ===== YouTube iframe progress (faqat ma'lumot uchun) =====
@@ -177,15 +191,25 @@ export default function LessonPage() {
           )}
         </div>
 
-        {/* Video progress bar - faqat ma'lumot uchun */}
+        {/* Video progress bar — MAJBURIY */}
         {hasVideo && !progress?.watched && (
           <div className="video-progress-wrap">
-            <div className="video-progress-bar">
-              <div className="video-progress-fill" style={{ width: `${videoProgress}%` }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#6b7280', marginBottom: '0.4rem' }}>
+              <span>Video ko'rildi: <strong style={{ color: videoProgress >= 90 ? '#10b981' : '#3b82f6' }}>{videoProgress}%</strong></span>
+              {timeLeft !== null && timeLeft > 0 && timeLeft <= 30 && (
+                <span style={{ color: timeLeft <= 10 ? '#10b981' : '#f59e0b', fontWeight: 600 }}>
+                  {timeLeft <= 10 ? '🔓 Quiz ochildi!' : `⏱ ${timeLeft}s qoldi`}
+                </span>
+              )}
             </div>
-            <span className="video-progress-label">
-              Video progress: {videoProgress}% (ixtiyoriy)
-            </span>
+            <div className="video-progress-bar">
+              <div className="video-progress-fill" style={{ width: `${videoProgress}%`, background: videoProgress >= 90 ? 'linear-gradient(90deg,#10b981,#059669)' : 'linear-gradient(90deg,#3b82f6,#8b5cf6)' }} />
+            </div>
+            {videoProgress < 90 && (
+              <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.3rem' }}>
+                Quiz ochilishi uchun videoni oxirigacha ko'ring (10 sekund qolganida ochiladi)
+              </div>
+            )}
           </div>
         )}
 
@@ -209,15 +233,22 @@ export default function LessonPage() {
             </span>
           )}
 
-          {/* Quiz tugmasi - doim ochiq */}
+          {/* Quiz tugmasi — faqat video ko'rilgandan keyin */}
           {quiz && (
-            <Link to={`/quiz/${quiz.id}`} className="btn btn-outline quiz-btn">
-              <FileQuestion size={16} />
-              {progress?.quiz_passed
-                ? <>Quiz o'tildi <span style={{ color: '#22c55e', marginLeft: 4 }}>({progress.quiz_score}%)</span></>
-                : 'Quizni boshlash'
-              }
-            </Link>
+            progress?.quiz_passed ? (
+              <Link to={`/quiz/${quiz.id}`} className="btn btn-outline quiz-btn">
+                <FileQuestion size={16} />
+                Quiz o'tildi <span style={{ color: '#10b981', marginLeft: 4 }}>({progress.quiz_score}%)</span>
+              </Link>
+            ) : (quizUnlocked || progress?.watched) ? (
+              <Link to={`/quiz/${quiz.id}`} className="btn btn-outline quiz-btn" style={{ borderColor: '#10b981', color: '#10b981' }}>
+                <FileQuestion size={16} /> Quizni boshlash 🔓
+              </Link>
+            ) : (
+              <button className="btn btn-outline quiz-btn" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Videoni oxirigacha ko'ring">
+                <FileQuestion size={16} /> Quiz (video ko'rilgandan keyin) 🔒
+              </button>
+            )
           )}
         </div>
 
