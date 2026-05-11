@@ -23,24 +23,24 @@ let faceapi = null
 const MODELS_URL = '/models'
 const CHECK_INTERVAL_MS = 500        // har 0.5 sekundda tekshir
 const MAX_WARNINGS = 3
-const YAW_THRESHOLD = 15             // bosh yon burilish 15% (eski 42 edi)
-const ABSENT_SECONDS = 0.5           // 0.5 sekund yuz yo'q bo'lsa ogohlantirish
+const YAW_THRESHOLD = 15             // bosh yon burilish 15%
+const ABSENT_SECONDS = 2             // 2 sekund yuz yo'q bo'lsa ogohlantirish
 const BRIGHTNESS_THRESHOLD = 30
-const WARN_COOLDOWN_MS = 500         // 0.5 sekund cooldown (eski 5000 edi)
+const WARN_COOLDOWN_MS = 2000        // 2 sekund cooldown — ozidan ozi bermasin
 
 // Ko'z harakatlari uchun parametrlar
-const EYE_ASPECT_RATIO_THRESHOLD = 0.21  // ko'z yopiq/ochiq chegarasi
+const EYE_ASPECT_RATIO_THRESHOLD = 0.21
 const GAZE_THRESHOLDS = {
-  down: 15,    // 15% chegara
+  down: 15,
   left: 15,
   right: 15,
   up: 15
 }
-const EYE_CLOSED_DURATION = 500          // 0.5 sekund
-const GAZE_VIOLATION_DURATION = 500      // 0.5 sekund
+const EYE_CLOSED_DURATION = 2000         // 2 sekund ko'z yopiq bo'lsa
+const GAZE_VIOLATION_DURATION = 2000     // 2 sekund ko'z chetga qarab tursa
 
 // Bosh harakati parametrlari
-const HEAD_MOVEMENT_THRESHOLD = 15       // 15% chegara
+const HEAD_MOVEMENT_THRESHOLD = 15
 
 // ===== Yorug'lik tekshiruvi =====
 function checkBrightness(video) {
@@ -156,13 +156,33 @@ function analyzeGaze(landmarks, videoWidth, videoHeight) {
   }
 }
 
-// ===== Ovoz tizimi — O'zbek erkak ovozi =====
+// ===== Ovoz tizimi — eng yaxshi browser ovozi =====
 let speechQueue = []
 let isSpeaking = false
+let cachedVoice = null
+
+function getBestVoice() {
+  if (cachedVoice) return cachedVoice
+  const voices = window.speechSynthesis?.getVoices() || []
+  // Prioritet: Google Uzbek > Google Russian > Microsoft Russian > any Russian > any
+  const priority = [
+    v => v.name.includes('Google') && (v.lang.startsWith('uz') || v.lang.startsWith('UZ')),
+    v => v.name.includes('Google') && v.lang.startsWith('ru'),
+    v => v.name.includes('Microsoft') && v.lang.startsWith('ru'),
+    v => v.lang.startsWith('ru'),
+    v => v.lang.startsWith('en') && v.name.includes('Google'),
+    v => v.default,
+  ]
+  for (const fn of priority) {
+    const found = voices.find(fn)
+    if (found) { cachedVoice = found; return found }
+  }
+  return voices[0] || null
+}
 
 function speakUzbek(text) {
-  // Navbatga qo'shish
-  speechQueue.push(text)
+  // Navbatni tozalab, faqat oxirgi xabarni ayt
+  speechQueue = [text]
   if (!isSpeaking) processQueue()
 }
 
@@ -175,34 +195,19 @@ function processQueue() {
   window.speechSynthesis.cancel()
 
   const utt = new SpeechSynthesisUtterance(text)
-
-  // Ovoz tanlash — Gemini kabi aniq va tushunarli
-  const voices = window.speechSynthesis.getVoices()
-  
-  // Google ovozini tanlash (eng yaxshi sifat)
-  const googleVoice = voices.find(v => 
-    v.name.includes('Google') && v.lang.startsWith('ru')
-  )
-  const microsoftVoice = voices.find(v => 
-    v.name.includes('Microsoft') && v.lang.startsWith('ru')
-  )
-  const anyRuVoice = voices.find(v => v.lang.startsWith('ru'))
-  
-  const bestVoice = googleVoice || microsoftVoice || anyRuVoice || voices[0]
-
-  utt.voice = bestVoice
-  utt.lang = 'ru-RU'
-  utt.rate = 0.95    // biroz sekinroq - aniq eshitilsin
-  utt.pitch = 1.0    // normal balandlik
-  utt.volume = 1.0   // to'liq ovoz
-
-  utt.onend = () => {
-    setTimeout(processQueue, 400)
+  const voice = getBestVoice()
+  if (voice) {
+    utt.voice = voice
+    utt.lang = voice.lang
+  } else {
+    utt.lang = 'ru-RU'
   }
-  utt.onerror = () => {
-    isSpeaking = false
-    processQueue()
-  }
+  utt.rate = 1.0
+  utt.pitch = 1.0
+  utt.volume = 1.0
+
+  utt.onend = () => { isSpeaking = false; setTimeout(processQueue, 200) }
+  utt.onerror = () => { isSpeaking = false; processQueue() }
 
   window.speechSynthesis.speak(utt)
 }
@@ -343,11 +348,7 @@ export default function FaceMonitor({ onViolation, onDarkExit, onAdminNotify, ac
   // ===== Ogohlantirish berish + Screenshot =====
   const issueWarning = useCallback((type) => {
     const now = Date.now()
-    // 5 sekund cooldown - agar oxirgi ogohlantirish 5 sekund ichida bo'lsa, yangi ogohlantirish berma
-    if (now - lastWarnRef.current < WARN_COOLDOWN_MS) {
-      console.log('Cooldown active, skipping warning')
-      return
-    }
+    if (now - lastWarnRef.current < WARN_COOLDOWN_MS) return
 
     lastWarnRef.current = now
     const newCount = warningsRef.current + 1
@@ -363,23 +364,21 @@ export default function FaceMonitor({ onViolation, onDarkExit, onAdminNotify, ac
     setLastMsg(text)
     speakUzbek(text)
 
-    // Screenshot olish (faqat 3 ta ogohlantirish bo'lganda)
-    if (newCount >= MAX_WARNINGS && videoRef.current) {
+    // Screenshot — har bir ogohlantirish uchun
+    if (videoRef.current) {
       try {
         const canvas = document.createElement('canvas')
-        canvas.width = videoRef.current.videoWidth
-        canvas.height = videoRef.current.videoHeight
+        canvas.width = videoRef.current.videoWidth || 320
+        canvas.height = videoRef.current.videoHeight || 240
         const ctx = canvas.getContext('2d')
         ctx.drawImage(videoRef.current, 0, 0)
-        const screenshot = canvas.toDataURL('image/jpeg', 0.8)
-        
-        // Adminga yuborish
+        const screenshot = canvas.toDataURL('image/jpeg', 0.7)
         onAdminNotify?.({
-          type: 'quiz_blocked',
+          type: newCount >= MAX_WARNINGS ? 'quiz_blocked' : 'warning',
           count: newCount,
           violationType: type,
           violationText: text,
-          screenshot: screenshot,
+          screenshot,
           timestamp: new Date().toISOString()
         })
       } catch (err) {
@@ -387,16 +386,15 @@ export default function FaceMonitor({ onViolation, onDarkExit, onAdminNotify, ac
       }
     }
 
-    setTimeout(() => setStatus('ok'), 3500)
+    setTimeout(() => setStatus('ok'), 3000)
 
     if (newCount >= MAX_WARNINGS) {
       setTimeout(() => {
-        speakUzbek("Uchunchi ogohlantirish. Imtihon qayta boshlanadi.")
         warningsRef.current = 0
         setWarnings(0)
         lastWarnRef.current = 0
         onViolation?.()
-      }, 1800)
+      }, 1500)
     }
   }, [onViolation, onAdminNotify])
 
