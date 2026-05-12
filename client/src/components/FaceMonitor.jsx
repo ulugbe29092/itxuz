@@ -315,16 +315,22 @@ export default function FaceMonitor({ onViolation, onDarkExit, onAdminNotify, ac
 
   // ===== Kamerani yoqish =====
   const startCamera = useCallback(async () => {
+    // Avval eski streamni to'xtatish
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop())
+      streamRef.current = null
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+    setCameraReady(false)
+
     try {
-      console.log('Starting camera...')
-      
-      // Kamera mavjudligini tekshirish
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        console.warn('Camera API not supported')
         setStatus('disabled')
         return
       }
-      
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: 320, height: 240, facingMode: 'user' },
         audio: false,
@@ -333,15 +339,12 @@ export default function FaceMonitor({ onViolation, onDarkExit, onAdminNotify, ac
       if (videoRef.current) {
         videoRef.current.srcObject = stream
         await videoRef.current.play()
-        console.log('Camera started successfully')
         setCameraReady(true)
         setStatus('ok')
       }
     } catch (err) {
-      console.error('Camera error:', err)
-      console.warn('Face ID disabled - camera not available')
+      console.error('Camera error:', err.name, err.message)
       setStatus('disabled')
-      // Kamera yo'q bo'lsa ham davom etsin
     }
   }, [])
 
@@ -405,11 +408,11 @@ export default function FaceMonitor({ onViolation, onDarkExit, onAdminNotify, ac
 
     const video = videoRef.current
 
-    // 1. Yorug'lik tekshiruvi
+    // 1. Yorug'lik tekshiruvi — kamera yoqilgandan 3 sekund o'tgandan keyin
     const brightness = checkBrightness(video)
     if (brightness < BRIGHTNESS_THRESHOLD) {
       darkCountRef.current++
-      if (darkCountRef.current >= 3) {
+      if (darkCountRef.current >= 5) { // 5 marta ketma-ket qorong'u bo'lsa
         speakUzbek(WARN_TEXTS.dark)
         setTimeout(() => onDarkExit?.(), 2500)
         return

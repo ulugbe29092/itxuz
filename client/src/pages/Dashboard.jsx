@@ -211,6 +211,16 @@ export default function Dashboard() {
             )}
 
             {/* Kurslar grid */}
+            {courses.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', background: '#fff', borderRadius: 16, border: '1.5px solid #e5e7eb' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📚</div>
+                <div style={{ fontWeight: 700, color: '#111827', marginBottom: '0.5rem' }}>Kurslar yuklanmoqda...</div>
+                <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '1.5rem' }}>Agar kurslar ko'rinmasa, sahifani yangilang</div>
+                <Link to="/courses" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.7rem 1.5rem', borderRadius: 10, background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', color: '#fff', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none' }}>
+                  <BookOpen size={16} /> Kurslarga o'tish
+                </Link>
+              </div>
+            ) : (
             <div className="db-courses-grid">
               {courses.map((c, i) => {
                 const pct = c.total_lessons > 0 ? Math.round((c.completed_lessons / c.total_lessons) * 100) : 0
@@ -245,6 +255,7 @@ export default function Dashboard() {
                 )
               })}
             </div>
+            )}
           </>
         )}
 
