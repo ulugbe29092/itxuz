@@ -1,243 +1,177 @@
 const express = require('express')
 const router = express.Router()
 const { GoogleGenerativeAI } = require('@google/generative-ai')
-const db = require('../db')
+const pool = require('../db')
 const { authMiddleware, adminMiddleware } = require('../middleware/auth')
 
-// Gemini AI ni ishga tushirish
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'AIzaSyAMtIm9Tawv24yhq4faNJOBwLOqegzM2ww')
+// Gemini AI — API key .env dan olish, fallback bilan
+const GEMINI_KEY = process.env.GEMINI_API_KEY || 'AIzaSyAMtIm9Tawv24yhq4faNJOBwLOqegzM2ww'
+const genAI = new GoogleGenerativeAI(GEMINI_KEY)
 
-// AI yordamchi - faqat admin uchun
+// Gemini model yaratish — har safar yangi instance
+function getModel(modelName = 'gemini-1.5-flash') {
+  return genAI.getGenerativeModel({
+    model: modelName,
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 8192,
+    }
+  })
+}
+
+// JSON tozalash utility
+function cleanJSON(text) {
+  let t = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+  const start = t.indexOf('[')
+  const end = t.lastIndexOf(']')
+  if (start !== -1 && end !== -1) t = t.substring(start, end + 1)
+  return t
+}
+
+// ===== 1. AI YORDAMCHI (admin uchun) =====
 router.post('/assist', adminMiddleware, async (req, res) => {
   try {
     const { prompt, context } = req.body
+    if (!prompt) return res.status(400).json({ error: 'Prompt talab qilinadi' })
 
-    if (!prompt) {
-      return res.status(400).json({ error: 'Prompt talab qilinadi' })
-    }
+    const systemPrompt = `Sen ITX Learning Platform uchun professional AI yordamchisisiz.
+Vazifang: admin panelda ishlayotgan administratorga yordam berish.
 
-    // System prompt - admin yordamchisi
-    const systemPrompt = `Siz ITX Learning Platform uchun professional AI yordamchisisiz. 
-Sizning vazifangiz admin panelda ishlayotgan administratorga yordam berishdir.
-
-Sizning imkoniyatlaringiz:
-1. Quiz (test) savollarini yaratish
+Imkoniyatlar:
+1. Quiz savollarini yaratish
 2. Kurs va dars ma'lumotlarini tahlil qilish
 3. Foydalanuvchilar statistikasini tushuntirish
 4. Tizim sozlamalariga maslahat berish
-5. Ma'lumotlar bazasi so'rovlarini tuzish
 
-Javoblaringiz:
-- O'zbek tilida, aniq va tushunarli
-- Professional va qisqa
-- Amaliy va foydali
-- Oddiy tilda, texnik jargonsiz
+Qoidalar:
+- O'zbek tilida, aniq va qisqa (2-4 jumla)
+- Professional va amaliy
+${context ? `\nKontekst:\n${context}` : ''}
 
-${context ? `\n\nHozirgi kontekst:\n${context}` : ''}`
+Savol: ${prompt}`
 
-    // Gemini modelini ishga tushirish
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
+    const model = getModel()
+    const result = await model.generateContent(systemPrompt)
+    const text = result.response.text()
 
-    const result = await model.generateContent([
-      systemPrompt,
-      `\n\nFoydalanuvchi so'rovi: ${prompt}`
-    ])
-
-    const response = await result.response
-    const text = response.text()
-
-    res.json({
-      success: true,
-      response: text,
-      timestamp: new Date().toISOString()
-    })
-
+    res.json({ success: true, response: text, timestamp: new Date().toISOString() })
   } catch (error) {
-    console.error('AI Assistant error:', error)
-    res.status(500).json({ 
-      error: 'AI yordamchi xatolik berdi',
-      details: error.message 
-    })
+    console.error('AI assist error:', error.message)
+    res.status(500).json({ error: 'AI xatolik berdi', details: error.message })
   }
 })
 
-// Quiz yaratish - AI yordami bilan (admin panel uchun)
+// ===== 2. QUIZ YARATISH (admin, mavzu bo'yicha) =====
 router.post('/generate-quiz', adminMiddleware, async (req, res) => {
   try {
-    const { topic, difficulty, questionCount, lessonId } = req.body
+    const { topic, difficulty = 'medium', questionCount = 10, lessonId } = req.body
+    if (!topic || !lessonId) return res.status(400).json({ error: 'Mavzu va dars ID kerak' })
 
-    if (!topic || !lessonId) {
-      return res.status(400).json({ error: 'Mavzu va dars ID talab qilinadi' })
-    }
+    const prompt = `"${topic}" mavzusida ${questionCount} ta ${difficulty} darajadagi test savol yoz.
 
-    const count = questionCount || 5
-    const level = difficulty || 'medium'
+FAQAT JSON array qaytaring:
+[{"question":"Savol?","options":["A","B","C","D"],"correctIndex":1}]`
 
-    const prompt = `${topic} mavzusida ${count} ta ${level} darajadagi test savollarini yarating.
-
-Har bir savol uchun:
-- Savol matni (aniq va tushunarli)
-- 4 ta javob varianti (A, B, C, D)
-- To'g'ri javob belgisi
-
-Format (JSON):
-[
-  {
-    "question": "Savol matni",
-    "options": [
-      {"text": "A variant", "isCorrect": false},
-      {"text": "B variant", "isCorrect": true},
-      {"text": "C variant", "isCorrect": false},
-      {"text": "D variant", "isCorrect": false}
-    ]
-  }
-]
-
-Faqat JSON formatda javob bering, boshqa matn yo'q.`
-
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
+    const model = getModel()
     const result = await model.generateContent(prompt)
-    const response = await result.response
-    let text = response.text()
-
-    // JSON ni tozalash
-    text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-
+    let text = cleanJSON(result.response.text())
     const questions = JSON.parse(text)
 
-    // Ma'lumotlar bazasiga saqlash
-    const quizTitle = `${topic} - AI Generated Quiz`
-    
     // Quiz yaratish
-    const quizResult = await db.run(
-      `INSERT INTO quizzes (lesson_id, title, pass_percentage) VALUES (?, ?, ?)`,
-      [lessonId, quizTitle, 70]
+    const quizRes = await pool.query(
+      'INSERT INTO quizzes (lesson_id, title, pass_percentage) VALUES ($1, $2, 70) RETURNING id',
+      [lessonId, `${topic} - AI Quiz`]
     )
+    const quizId = quizRes.rows[0].id
 
-    const quizId = quizResult.lastID
-
-    // Savollarni qo'shish
+    // Savollarni saqlash
     for (const q of questions) {
-      const questionResult = await db.run(
-        `INSERT INTO quiz_questions (quiz_id, question_text, question_order) VALUES (?, ?, ?)`,
-        [quizId, q.question, questions.indexOf(q) + 1]
+      const qRes = await pool.query(
+        'INSERT INTO quiz_questions (quiz_id, question_text) VALUES ($1, $2) RETURNING id',
+        [quizId, q.question]
       )
-
-      const questionId = questionResult.lastID
-
-      // Javoblarni qo'shish
-      for (const opt of q.options) {
-        await db.run(
-          `INSERT INTO quiz_options (question_id, option_text, is_correct) VALUES (?, ?, ?)`,
-          [questionId, opt.text, opt.isCorrect ? 1 : 0]
+      const qId = qRes.rows[0].id
+      for (let i = 0; i < q.options.length; i++) {
+        await pool.query(
+          'INSERT INTO quiz_options (question_id, option_text, is_correct) VALUES ($1, $2, $3)',
+          [qId, q.options[i], i === q.correctIndex ? 1 : 0]
         )
       }
     }
 
-    res.json({
-      success: true,
-      quizId,
-      questionCount: questions.length,
-      message: 'Quiz muvaffaqiyatli yaratildi'
-    })
-
+    res.json({ success: true, quizId, questionCount: questions.length })
   } catch (error) {
-    console.error('Generate quiz error:', error)
-    res.status(500).json({ 
-      error: 'Quiz yaratishda xatolik',
-      details: error.message 
-    })
+    console.error('Generate quiz error:', error.message)
+    res.status(500).json({ error: 'Quiz yaratishda xatolik', details: error.message })
   }
 })
 
-// Avtomatik quiz generatsiya (dars qo'shilganda yoki admin paneldan)
+// ===== 3. AVTOMATIK QUIZ (dars nomi + tavsif + video asosida) =====
 router.post('/generate-quiz-auto', authMiddleware, async (req, res) => {
   try {
     const { courseTitle, lessonTitle, lessonDescription, videoUrl, questionCount } = req.body
-
-    if (!lessonTitle) {
-      return res.status(400).json({ error: 'Dars nomi talab qilinadi' })
-    }
+    if (!lessonTitle) return res.status(400).json({ error: 'Dars nomi kerak' })
 
     const count = Math.min(parseInt(questionCount) || 30, 50)
 
-    // YouTube video ID ni ajratib olish
-    let youtubeInfo = ''
+    // YouTube video ID
+    let videoInfo = ''
     if (videoUrl) {
-      const ytMatch = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/)
-      if (ytMatch) {
-        youtubeInfo = `\nYouTube video: https://www.youtube.com/watch?v=${ytMatch[1]}`
-      }
+      const m = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/)
+      if (m) videoInfo = `\nYouTube: https://www.youtube.com/watch?v=${m[1]}`
     }
 
-    const descPart = lessonDescription ? `\nDars tavsifi: "${lessonDescription}"` : ''
+    const descInfo = lessonDescription ? `\nTavsif: "${lessonDescription}"` : ''
 
-    // Vercel timeout uchun: ko'p so'rov o'rniga bitta katta so'rov
-    const prompt = `Sen professional IT o'qituvchisan. Quyidagi dars uchun AYNAN ${count} ta test savol yoz. Ko'proq yoki kamroq emas, AYNAN ${count} ta.
+    const prompt = `Sen professional IT o'qituvchisan. Quyidagi dars uchun AYNAN ${count} ta test savol yoz.
 
-DARS MA'LUMOTLARI:
+DARS:
 - Kurs: "${courseTitle || 'IT kursi'}"
-- Dars nomi: "${lessonTitle}"${descPart}${youtubeInfo}
+- Dars: "${lessonTitle}"${descInfo}${videoInfo}
 
-SAVOL TALABLARI:
-- O'zbek tilida, aniq va tushunarli
-- FAQAT dars nomi va tavsifidagi mavzularga oid
-- Har xil qiyinlik: oson (30%), o'rta (50%), qiyin (20%)
-- Har bir savolda 4 ta variant, faqat 1 tasi to'g'ri
+TALABLAR:
+- O'zbek tilida, aniq
+- Dars mavzusiga oid
+- Qiyinlik: oson 30%, o'rta 50%, qiyin 20%
+- 4 ta variant, 1 ta to'g'ri
 
-FAQAT JSON array qaytaring, boshqa hech qanday matn yo'q:
+FAQAT JSON (boshqa matn yo'q):
 [{"question":"...","options":["A","B","C","D"],"correctIndex":0}]`
 
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 8192,
-      }
-    })
-
+    const model = getModel()
     const result = await model.generateContent(prompt)
-    const response = await result.response
-    let text = response.text()
-
-    // JSON ni tozalash
-    text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-    const jsonStart = text.indexOf('[')
-    const jsonEnd = text.lastIndexOf(']')
-    if (jsonStart !== -1 && jsonEnd !== -1) {
-      text = text.substring(jsonStart, jsonEnd + 1)
-    }
+    let text = cleanJSON(result.response.text())
 
     let questions
     try {
       questions = JSON.parse(text)
     } catch {
-      // JSON parse xatosi bo'lsa, qayta urinish
-      throw new Error('AI noto\'g\'ri format qaytardi. Qayta urinib ko\'ring.')
+      throw new Error('AI noto\'g\'ri format qaytardi')
     }
 
     if (!Array.isArray(questions) || questions.length === 0) {
-      throw new Error('AI bo\'sh javob qaytardi.')
+      throw new Error('AI bo\'sh javob qaytardi')
     }
 
-    // Har bir savolni validatsiya qilish
-    const validQuestions = questions.filter(q =>
-      q.question && Array.isArray(q.options) && q.options.length === 4 &&
-      typeof q.correctIndex === 'number' && q.correctIndex >= 0 && q.correctIndex <= 3
+    // Validatsiya
+    const valid = questions.filter(q =>
+      q.question &&
+      Array.isArray(q.options) && q.options.length === 4 &&
+      typeof q.correctIndex === 'number' &&
+      q.correctIndex >= 0 && q.correctIndex <= 3
     )
 
     res.json({
       success: true,
-      questions: validQuestions,
-      count: validQuestions.length,
+      questions: valid,
+      count: valid.length,
       usedDescription: !!lessonDescription,
-      usedVideo: !!youtubeInfo
+      usedVideo: !!videoInfo
     })
-
   } catch (error) {
-    console.error('Auto quiz generation error:', error)
+    console.error('Auto quiz error:', error.message)
     res.status(500).json({
-      error: 'Avtomatik quiz yaratishda xatolik',
+      error: 'Quiz yaratishda xatolik: ' + error.message,
       details: error.message,
       questions: []
     })

@@ -26,7 +26,7 @@ router.post('/ai-chat', async (req, res) => {
   const { message, userName, userRole } = req.body;
   if (!message) return res.json({ reply: 'Xabar yuboring.' });
 
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBL9m7Vkz-KQSLxY7iBUx7sFa--OaofBF4';
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyAMtIm9Tawv24yhq4faNJOBwLOqegzM2ww'
 
   const greeting = userName
     ? (userRole === 'admin'
