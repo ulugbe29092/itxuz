@@ -153,7 +153,7 @@ export default function Pricing() {
                       <span style={{ color: '#6b7280' }}>Admin telefon:</span>
                       <strong><a href="tel:+998906373754" style={{ color: '#3b82f6', textDecoration: 'none' }}>+998 90 637 37 54</a></strong>
                     </div>
-                    {[['Karta raqami', '8600 1234 5678 9012'], ['Karta egasi', 'ULUGBEK VALIYEV'], ['Summa', `${modal.price} so'm`]].map(([k, v]) => (
+                    {[['Karta raqami', '8600 1234 5678 9012'], ['Karta egasi', "VALIYEV ULUG'BEK"], ['Summa', `${modal.price} so'm`]].map(([k, v]) => (
                       <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid #f3f4f6', fontSize: '0.9rem' }}>
                         <span style={{ color: '#6b7280' }}>{k}:</span>
                         <strong style={{ color: '#111827' }}>{v}</strong>

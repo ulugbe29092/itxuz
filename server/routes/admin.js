@@ -321,7 +321,7 @@ router.post('/lessons', videoUpload.single('video_file'), async (req, res) => {
       // AI orqali 30 ta savol generatsiya qilish - to'g'ridan-to'g'ri Gemini chaqirish
       const { GoogleGenerativeAI } = require('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'AIzaSyAMtIm9Tawv24yhq4faNJOBwLOqegzM2ww');
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
       // Dars tavsifi va video URL ni prompt ga qo'shish
       const descPart = description ? `\n- Dars tavsifi: "${description}"` : '';

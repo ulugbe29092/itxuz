@@ -9,7 +9,7 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY || 'AIzaSyAMtIm9Tawv24yhq4faNJOBwL
 const genAI = new GoogleGenerativeAI(GEMINI_KEY)
 
 // Gemini model yaratish — har safar yangi instance
-function getModel(modelName = 'gemini-1.5-flash') {
+function getModel(modelName = 'gemini-2.0-flash') {
   return genAI.getGenerativeModel({
     model: modelName,
     generationConfig: {
