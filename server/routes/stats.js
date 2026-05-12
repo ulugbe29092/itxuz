@@ -26,7 +26,7 @@ router.post('/ai-chat', async (req, res) => {
   const { message, userName, userRole } = req.body;
   if (!message) return res.json({ reply: 'Xabar yuboring.' });
 
-  const GEMINI_KEY = process.env.GEMINI_API_KEY || 'AIzaSyAMtIm9Tawv24yhq4faNJOBwLOqegzM2ww';
+  const GEMINI_KEY = process.env.GEMINI_API_KEY || 'AIzaSyCcwGs8dz2RtkKGLk_6007bIK4M5Kij_-M';
 
   const name = userName ? userName.split(' ')[0] : null;
   const nameGreet = name ? `Foydalanuvchi ismi: ${name}.` : 'Mehmon foydalanuvchi.';
