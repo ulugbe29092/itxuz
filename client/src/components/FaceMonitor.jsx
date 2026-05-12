@@ -21,14 +21,14 @@ import { CameraOff, AlertTriangle, ShieldCheck, Eye, EyeOff, Lock } from 'lucide
 let faceapi = null
 
 const MODELS_URL = '/models'
-const CHECK_INTERVAL_MS = 500        // har 0.5 sekundda tekshir
+const CHECK_INTERVAL_MS = 1000       // har 1 sekundda tekshir
 const MAX_WARNINGS = 3
-const YAW_THRESHOLD = 15             // bosh yon burilish 15%
-const ABSENT_SECONDS = 2             // 2 sekund yuz yo'q bo'lsa ogohlantirish
+const YAW_THRESHOLD = 15
+const ABSENT_SECONDS = 3             // 3 sekund yuz yo'q bo'lsa
 const BRIGHTNESS_THRESHOLD = 30
-const WARN_COOLDOWN_MS = 2000        // 2 sekund cooldown — ozidan ozi bermasin
+const WARN_COOLDOWN_MS = 4000        // 4 sekund cooldown — ozidan ozi bermasin
 
-// Ko'z harakatlari uchun parametrlar
+// Ko'z harakatlari
 const EYE_ASPECT_RATIO_THRESHOLD = 0.21
 const GAZE_THRESHOLDS = {
   down: 15,
@@ -36,10 +36,10 @@ const GAZE_THRESHOLDS = {
   right: 15,
   up: 15
 }
-const EYE_CLOSED_DURATION = 2000         // 2 sekund ko'z yopiq bo'lsa
-const GAZE_VIOLATION_DURATION = 2000     // 2 sekund ko'z chetga qarab tursa
+const EYE_CLOSED_DURATION = 3000     // 3 sekund
+const GAZE_VIOLATION_DURATION = 3000 // 3 sekund
 
-// Bosh harakati parametrlari
+// Bosh harakati
 const HEAD_MOVEMENT_THRESHOLD = 15
 
 // ===== Yorug'lik tekshiruvi =====

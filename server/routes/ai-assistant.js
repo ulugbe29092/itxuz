@@ -1,25 +1,34 @@
 const express = require('express')
 const router = express.Router()
-const { GoogleGenerativeAI } = require('@google/generative-ai')
 const pool = require('../db')
 const { authMiddleware, adminMiddleware } = require('../middleware/auth')
 
-// Gemini AI — API key .env dan olish, fallback bilan
 const GEMINI_KEY = process.env.GEMINI_API_KEY || 'AIzaSyCcwGs8dz2RtkKGLk_6007bIK4M5Kij_-M'
-const genAI = new GoogleGenerativeAI(GEMINI_KEY)
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`
 
-// Gemini model yaratish
-function getModel(modelName = 'gemini-2.0-flash') {
-  return genAI.getGenerativeModel({
-    model: modelName,
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 8192,
-    }
+// Gemini API chaqirish — fetch bilan (Vercel da ishonchli)
+async function callGemini(prompt, maxTokens = 8192) {
+  const res = await fetch(GEMINI_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens }
+    })
   })
+
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Gemini API ${res.status}: ${err.substring(0, 200)}`)
+  }
+
+  const data = await res.json()
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
+  if (!text) throw new Error('Gemini bo\'sh javob qaytardi')
+  return text
 }
 
-// JSON tozalash utility
+// JSON tozalash
 function cleanJSON(text) {
   let t = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
   const start = t.indexOf('[')
@@ -28,85 +37,27 @@ function cleanJSON(text) {
   return t
 }
 
-// ===== 1. AI YORDAMCHI (admin uchun) =====
+// ===== 1. AI YORDAMCHI (admin) =====
 router.post('/assist', adminMiddleware, async (req, res) => {
   try {
     const { prompt, context } = req.body
-    if (!prompt) return res.status(400).json({ error: 'Prompt talab qilinadi' })
+    if (!prompt) return res.status(400).json({ error: 'Prompt kerak' })
 
-    const systemPrompt = `Sen ITX Learning Platform uchun professional AI yordamchisisiz.
+    const fullPrompt = `Sen ITX Learning Platform uchun AI yordamchisisiz.
 Vazifang: admin panelda ishlayotgan administratorga yordam berish.
-
-Imkoniyatlar:
-1. Quiz savollarini yaratish
-2. Kurs va dars ma'lumotlarini tahlil qilish
-3. Foydalanuvchilar statistikasini tushuntirish
-4. Tizim sozlamalariga maslahat berish
-
-Qoidalar:
-- O'zbek tilida, aniq va qisqa (2-4 jumla)
-- Professional va amaliy
-${context ? `\nKontekst:\n${context}` : ''}
-
+O'zbek tilida, aniq va qisqa javob ber.
+${context ? `Kontekst: ${context}\n` : ''}
 Savol: ${prompt}`
 
-    const model = getModel()
-    const result = await model.generateContent(systemPrompt)
-    const text = result.response.text()
-
-    res.json({ success: true, response: text, timestamp: new Date().toISOString() })
+    const text = await callGemini(fullPrompt, 400)
+    res.json({ success: true, response: text })
   } catch (error) {
     console.error('AI assist error:', error.message)
-    res.status(500).json({ error: 'AI xatolik berdi', details: error.message })
+    res.status(500).json({ error: error.message })
   }
 })
 
-// ===== 2. QUIZ YARATISH (admin, mavzu bo'yicha) =====
-router.post('/generate-quiz', adminMiddleware, async (req, res) => {
-  try {
-    const { topic, difficulty = 'medium', questionCount = 10, lessonId } = req.body
-    if (!topic || !lessonId) return res.status(400).json({ error: 'Mavzu va dars ID kerak' })
-
-    const prompt = `"${topic}" mavzusida ${questionCount} ta ${difficulty} darajadagi test savol yoz.
-
-FAQAT JSON array qaytaring:
-[{"question":"Savol?","options":["A","B","C","D"],"correctIndex":1}]`
-
-    const model = getModel()
-    const result = await model.generateContent(prompt)
-    let text = cleanJSON(result.response.text())
-    const questions = JSON.parse(text)
-
-    // Quiz yaratish
-    const quizRes = await pool.query(
-      'INSERT INTO quizzes (lesson_id, title, pass_percentage) VALUES ($1, $2, 70) RETURNING id',
-      [lessonId, `${topic} - AI Quiz`]
-    )
-    const quizId = quizRes.rows[0].id
-
-    // Savollarni saqlash
-    for (const q of questions) {
-      const qRes = await pool.query(
-        'INSERT INTO quiz_questions (quiz_id, question_text) VALUES ($1, $2) RETURNING id',
-        [quizId, q.question]
-      )
-      const qId = qRes.rows[0].id
-      for (let i = 0; i < q.options.length; i++) {
-        await pool.query(
-          'INSERT INTO quiz_options (question_id, option_text, is_correct) VALUES ($1, $2, $3)',
-          [qId, q.options[i], i === q.correctIndex ? 1 : 0]
-        )
-      }
-    }
-
-    res.json({ success: true, quizId, questionCount: questions.length })
-  } catch (error) {
-    console.error('Generate quiz error:', error.message)
-    res.status(500).json({ error: 'Quiz yaratishda xatolik', details: error.message })
-  }
-})
-
-// ===== 3. AVTOMATIK QUIZ (dars nomi + tavsif + video asosida) =====
+// ===== 2. AVTOMATIK QUIZ (dars asosida) =====
 router.post('/generate-quiz-auto', authMiddleware, async (req, res) => {
   try {
     const { courseTitle, lessonTitle, lessonDescription, videoUrl, questionCount } = req.body
@@ -114,13 +65,11 @@ router.post('/generate-quiz-auto', authMiddleware, async (req, res) => {
 
     const count = Math.min(parseInt(questionCount) || 30, 50)
 
-    // YouTube video ID
     let videoInfo = ''
     if (videoUrl) {
       const m = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/)
       if (m) videoInfo = `\nYouTube: https://www.youtube.com/watch?v=${m[1]}`
     }
-
     const descInfo = lessonDescription ? `\nTavsif: "${lessonDescription}"` : ''
 
     const prompt = `Sen professional IT o'qituvchisan. Quyidagi dars uchun AYNAN ${count} ta test savol yoz.
@@ -138,22 +87,20 @@ TALABLAR:
 FAQAT JSON (boshqa matn yo'q):
 [{"question":"...","options":["A","B","C","D"],"correctIndex":0}]`
 
-    const model = getModel()
-    const result = await model.generateContent(prompt)
-    let text = cleanJSON(result.response.text())
+    const text = await callGemini(prompt, 8192)
+    const cleaned = cleanJSON(text)
 
     let questions
     try {
-      questions = JSON.parse(text)
+      questions = JSON.parse(cleaned)
     } catch {
-      throw new Error('AI noto\'g\'ri format qaytardi')
+      throw new Error('AI noto\'g\'ri format qaytardi. Qayta urinib ko\'ring.')
     }
 
     if (!Array.isArray(questions) || questions.length === 0) {
       throw new Error('AI bo\'sh javob qaytardi')
     }
 
-    // Validatsiya
     const valid = questions.filter(q =>
       q.question &&
       Array.isArray(q.options) && q.options.length === 4 &&
@@ -171,10 +118,47 @@ FAQAT JSON (boshqa matn yo'q):
   } catch (error) {
     console.error('Auto quiz error:', error.message)
     res.status(500).json({
-      error: 'Quiz yaratishda xatolik: ' + error.message,
-      details: error.message,
+      error: error.message,
       questions: []
     })
+  }
+})
+
+// ===== 3. QUIZ YARATISH (mavzu bo'yicha) =====
+router.post('/generate-quiz', adminMiddleware, async (req, res) => {
+  try {
+    const { topic, difficulty = 'medium', questionCount = 10, lessonId } = req.body
+    if (!topic || !lessonId) return res.status(400).json({ error: 'Mavzu va dars ID kerak' })
+
+    const prompt = `"${topic}" mavzusida ${questionCount} ta ${difficulty} darajadagi test savol yoz.
+FAQAT JSON: [{"question":"...","options":["A","B","C","D"],"correctIndex":1}]`
+
+    const text = await callGemini(prompt, 4096)
+    const questions = JSON.parse(cleanJSON(text))
+
+    const quizRes = await pool.query(
+      'INSERT INTO quizzes (lesson_id, title, pass_percentage) VALUES ($1, $2, 70) RETURNING id',
+      [lessonId, `${topic} - AI Quiz`]
+    )
+    const quizId = quizRes.rows[0].id
+
+    for (const q of questions) {
+      const qRes = await pool.query(
+        'INSERT INTO quiz_questions (quiz_id, question_text) VALUES ($1, $2) RETURNING id',
+        [quizId, q.question]
+      )
+      for (let i = 0; i < q.options.length; i++) {
+        await pool.query(
+          'INSERT INTO quiz_options (question_id, option_text, is_correct) VALUES ($1, $2, $3)',
+          [qRes.rows[0].id, q.options[i], i === q.correctIndex]
+        )
+      }
+    }
+
+    res.json({ success: true, quizId, questionCount: questions.length })
+  } catch (error) {
+    console.error('Generate quiz error:', error.message)
+    res.status(500).json({ error: error.message })
   }
 })
 

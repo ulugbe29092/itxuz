@@ -49,7 +49,8 @@ router.get('/dashboard', authMiddleware, async (req, res) => {
 
       // Quiz statistikasi
       pool.query(
-        `SELECT COUNT(*) as total, SUM(CASE WHEN passed THEN 1 ELSE 0 END) as passed,
+        `SELECT COUNT(*) as total,
+          SUM(CASE WHEN passed = TRUE OR passed = 1 THEN 1 ELSE 0 END) as passed,
           ROUND(AVG(score)) as avg_score
          FROM user_quiz_attempts WHERE user_id=$1`,
         [userId]
@@ -58,7 +59,7 @@ router.get('/dashboard', authMiddleware, async (req, res) => {
       // Bugungi faollik (darslar)
       pool.query(
         `SELECT COUNT(*) as count FROM user_progress
-         WHERE user_id=$1 AND watched=TRUE
+         WHERE user_id=$1 AND (watched=TRUE OR watched=1)
          AND completed_at >= CURRENT_DATE`,
         [userId]
       ),
@@ -67,7 +68,7 @@ router.get('/dashboard', authMiddleware, async (req, res) => {
       pool.query(
         `SELECT DATE(completed_at) as day, COUNT(*) as count
          FROM user_progress
-         WHERE user_id=$1 AND watched=TRUE
+         WHERE user_id=$1 AND (watched=TRUE OR watched=1)
          AND completed_at >= CURRENT_DATE - INTERVAL '6 days'
          GROUP BY DATE(completed_at) ORDER BY day ASC`,
         [userId]
@@ -77,7 +78,7 @@ router.get('/dashboard', authMiddleware, async (req, res) => {
     // Oylik faollik
     const monthProgress = await pool.query(
       `SELECT COUNT(*) as count FROM user_progress
-       WHERE user_id=$1 AND watched=TRUE
+       WHERE user_id=$1 AND (watched=TRUE OR watched=1)
        AND completed_at >= DATE_TRUNC('month', CURRENT_DATE)`,
       [userId]
     );
