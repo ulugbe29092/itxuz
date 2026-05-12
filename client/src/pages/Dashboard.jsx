@@ -101,18 +101,26 @@ export default function Dashboard() {
     api.get('/user/dashboard').then(r => {
       setData(r.data)
       setLoading(false)
-    }).catch(() => setLoading(false))
+    }).catch(() => {
+      // API xato bersa ham bo'sh data bilan ko'rsat
+      setData({
+        completedLessons: 0, totalLessons: 0, overallPct: 0,
+        courses: [], certificates: [], quizStats: {},
+        todayLessons: 0, monthLessons: 0, weekData: [],
+        daysRemaining: null
+      })
+      setLoading(false)
+    })
   }, [])
 
   if (loading) return <Loader />
-  if (!data) return null
 
   const {
     completedLessons = 0, totalLessons = 0, overallPct = 0,
     courses = [], certificates = [], quizStats = {},
     todayLessons = 0, monthLessons = 0, weekData = [],
     daysRemaining
-  } = data
+  } = data || {}
 
   // Eng ko'p progress qilingan kurs
   const activeCourse = courses.find(c => {

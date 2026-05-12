@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   GraduationCap, BookOpen, DollarSign,
-  User, LogOut, Menu, X, ShieldCheck, Eye
+  User, LogOut, Menu, X, ShieldCheck, Eye, BarChart2
 } from 'lucide-react'
 import useAuthStore from '../store/authStore'
 
@@ -24,6 +24,13 @@ export default function Navbar() {
   const userNavLinks = [
     { to: '/', icon: <GraduationCap size={16} />, label: 'Bosh sahifa' },
     { to: '/courses', icon: <BookOpen size={16} />, label: 'Kurslar' },
+    { to: '/pricing', icon: <DollarSign size={16} />, label: 'Narxlar' },
+  ]
+
+  const authNavLinks = [
+    { to: '/', icon: <GraduationCap size={16} />, label: 'Bosh sahifa' },
+    { to: '/courses', icon: <BookOpen size={16} />, label: 'Kurslar' },
+    { to: '/dashboard', icon: <BarChart2 size={16} />, label: 'Statistika' },
     { to: '/pricing', icon: <DollarSign size={16} />, label: 'Narxlar' },
   ]
 
@@ -70,7 +77,7 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                {userNavLinks.map(({ to, icon, label }) => (
+                {(user ? authNavLinks : userNavLinks).map(({ to, icon, label }) => (
                   <Link key={to} to={to} style={navLinkStyle(isActive(to))}
                     onMouseEnter={e => { if (!isActive(to)) { e.currentTarget.style.color = '#374151'; e.currentTarget.style.background = '#f9fafb' } }}
                     onMouseLeave={e => { if (!isActive(to)) { e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.background = 'transparent' } }}
@@ -150,7 +157,7 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              {userNavLinks.map(({ to, icon, label }) => (
+              {(user ? authNavLinks : userNavLinks).map(({ to, icon, label }) => (
                 <Link key={to} to={to} onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: 8, color: isActive(to) ? '#3b82f6' : '#6b7280', fontWeight: isActive(to) ? 600 : 500, background: isActive(to) ? 'rgba(59,130,246,0.08)' : 'transparent' }}>
                   {icon} {label}
                 </Link>
